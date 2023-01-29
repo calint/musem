@@ -1,2 +1,2 @@
 # musem
-some experiments with assembler for i386
+experiments with x86 assembler in protected mode i386
