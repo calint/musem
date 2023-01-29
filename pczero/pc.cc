@@ -15,41 +15,78 @@ asm(".global osca_t1");
 asm(".global _start");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("xor %bx,%bx");
-asm("movw %bx,%ds");
-asm("movb %dl,(osca_drv_b)");//save boot drive
-asm("movw %bx,%ss");
-asm("movw $_start,%sp");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("movw $(0x0200+LOAD_SECTORS),%ax");
-asm("movw $0x0002,%cx");//from sector 2
-asm("movw $0x07e0,%bx");//to 0x7e00
-asm("movw %bx,%es");
-asm("xor %bx,%bx");
-asm("int $0x13");
-//asm("jnc 1f");
-//asm("  movw $0xb800,%ax");//console segment
-//asm("  mov %ax,%fs");
-//asm("  movw $0xffff,%fs:0");//top left corner
-//asm("  2:cli");//hlt
+asm("cli");
+asm("xor %ax,%ax");// clear ax
+asm("mov %ax,%ds");// clear data segment
+//asm("mov %ax,%ss");// clear stack segment
+//asm("mov $_start,%sp");// set stack pointer
+asm("cld");// clear direction flag
+
+//////////////////////////////////////////////////////////////////////
+asm("  mov $0xb800,%ax");//console segment
+asm("  mov %ax,%fs");
+asm("  movw $0x1041,%fs:0");// top left corner: 'A' on blue background
+//asm("  4:cli");// hang
 //asm("    hlt");
-//asm("    jmp 2b");
-//asm("1:");
+//asm("    jmp 4b");
+//////////////////////////////////////////////////////////////////////
+
+//asm("movb %dl,(osca_drv_b)");// save boot drive
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+// load sectors
+asm("mov $0,%ah");// reset disk system
+asm("int $0x13");
+//asm("mov $(0x0200+LOAD_SECTORS),%ax");// function 2 in %ah and sectors to read in %al
+asm("movb $2,%ah");// function 2
+asm("movb $0x1f,%al");// number of sectors to read
+//asm("mov $0x0002,%cx");// from cylinder 0 sector 2
+asm("movb $0,%ch");// cylinder 0
+asm("movb $2,%cl");// from sector 2 (starts from 1)
+asm("mov $0,%dh"); // head 0
+asm("xor %bx,%bx");// load to es:bx
+asm("mov %bx,%es");// clear segment
+asm("mov $0x7e00,%bx"); // load to this address
+asm("int $0x13");
+asm("jnc 1f");// if no error jump
+asm("  mov $0xb800,%ax");//console segment
+asm("  mov %ax,%fs");
+asm("  movw $0x0445,%fs:0");// E
+//asm("  movw $0x0445,%fs:2");// E
+asm("  2:cli");// hang
+asm("    hlt");
+asm("    jmp 2b");
+asm("1:");
+
+///////////////////////////////////////////////////////////////////////////
+asm("  mov $0xb800,%ax");//console segment
+asm("  mov %ax,%fs");
+asm("  movw $0x1042,%fs:2");// 'B' on blue background
+//asm("  3:cli");// hang
+//asm("    hlt");
+//asm("    jmp 3b");
+//////////////////////////////////////////////////////////////////////
+
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("mov $0x13,%ax");//vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
+
 asm("mov $0xa000,%ax");
-asm("mov %ax,%gs");//gs to vgabmp
+//asm("mov %ax,%gs");//gs to vgabmp
 asm("mov %ax,%es");//es
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
 //asm("movw $0x0404,%gs:0x100");
 //asm("cld");
-asm("mov $0xa000,%ax");
-asm("mov %ax,%es");
+//asm("mov $0xa000,%ax");
+//asm("mov %ax,%es");
 asm("mov $0x8000,%di");
 asm("mov $0x7c00,%si");
-asm("mov $PROG_SIZE>>1,%cx");
+//asm("mov $PROG_SIZE>>1,%cx");
+asm("mov $0x4000,%cx");
 asm("rep movsw");
+//asm("99:cli");// hang
+//asm("  hlt");
+//asm("  jmp 99b");
+
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 //asm("movw $0x0404,%gs:0x104");
 asm("in $0x92,%al");// enable a20 line (odd megs)
@@ -250,15 +287,15 @@ asm("xor %ax,%ax");
 asm("mov %ax,%ds");
 asm("mov %ax,%ss");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $0x0301,%ax");//save 2nd sector
-asm("mov $0x0002,%cx");//
-asm("mov $0x07e0,%bx");//
-asm("mov %bx,%es");
-asm("xor %bx,%bx");
-asm("mov (osca_drv_b),%dl");
-asm("xor %dh,%dh");
-asm("int $0x13");
-asm("jc 8f");
+//asm("mov $0x0301,%ax");//save 2nd sector
+//asm("mov $0x0002,%cx");//
+//asm("mov $0x07e0,%bx");//
+//asm("mov %bx,%es");
+//asm("xor %bx,%bx");
+//asm("mov (osca_drv_b),%dl");
+//asm("xor %dh,%dh");
+//asm("int $0x13");
+//asm("jc 8f");
 //! dot write-ack
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("8:cli");
@@ -267,20 +304,6 @@ asm("  jmp 8b");
 asm("page0:");
 asm(".align 0x400");
 asm(".space 0x1000,1");
-//asm("mov $0x4f02,%ax");//vesa mode
-//asm("mov $0x410f,%bx");// 320x200x24 bmp
-//asm("mov $0x8100,%bx");// 640x400x256 graphics
-//asm("mov $0x8112,%bx");// 640x480x16.8M
-//asm("mov $0x8115,%bx");// 800x600x16.8M
-//asm("mov $0x8118,%bx");// 1024x768x16.8M
-//AX = 4F01h; ES:DI = pointer to 256 byte buffer;
-//CX = mode number
-//INT 10h
-//hx
-//00	ModeAttributes	WORD	bit 7 (v2.0+) Set if linear framebuffer mode supported
-//28	PhysBasePtr	DWORD	(v2.0+) Physical address of linear framebuffer
-//2C	OffScreenMemOffset	DWORD	(v2.0+) Offset from start of frame buffer to first application usable video memory which is not normally visible. It is possible that there will be offsets between normal onscreen memory and this field value which should not be altered.
-//30	OffScreenMemSize	WORD	(v2.0+) Number of kilobytes of application usable offscreen memory.
 
 /*
   00000-003FF  IVT (Interrupt Vector Table)

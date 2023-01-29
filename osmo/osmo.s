@@ -23,7 +23,7 @@ k0s:
 .setup_init:
 	cli
 	xor ax,ax		; initiate cpu state
-	mov ds,ax
+	mov ds,ax		; data segment
 	cld				; clear direction flag
 	mov sp,k0s		; setup stack pointer
 	mov [k0s.dr],dx	; save the boot drive (dl)
@@ -36,7 +36,7 @@ k0s:
 	mov word[es:4],0x0101
 ;	jmp $
 .setup_load:
-	mov ah,0		; reset disk system
+	mov ah,0		; reset disk system (necessary?)
 	int 13h
 	; setup read
 	mov ax,0x021f	; bios:read(02) 1fh sectors x 512B
@@ -57,9 +57,9 @@ k0s:
 	mov es,ax		;
 	mov word[es:8],0x0202 ; status
 
-	xor ax,ax       ; must or crash on eeepc
-	mov ds,ax       ; |
-	mov cx,4096*4   ; copy 16k from 7c00 to a0000+320*100
+;	xor ax,ax       ; must or crash on eeepc (ds already cleared at line 25,26?)
+;	mov ds,ax       ; |
+	mov cx,4096*4   ; copy 32k from 7c00 to a0000+320*100
 	mov si,7c00h
 	mov di,320*100
 	rep movsb
@@ -108,6 +108,7 @@ align 16
 align 16	; why not 32?
 bits 32
 .setup_pm:
+	cli	; disable interrupts (why again? on asus zenbook interrupts are enabled)
 	mov dword[es:16],0x04040404
 ;	mov dword[0xa0010],0x04040404
 ;	jmp $
@@ -171,23 +172,6 @@ bits 32
 
 	mov dword[es:48],0x08080808
 ;	jmp $
-
-;	push dword["stac"]
-;	push dword["rain"]
-;.setup_pci:
-;                         ; using bios
-;    mov ax,0b101h       ; interrupt 1a function b101
-;    int 1ah             ; will tell us if there is a PCI
-;    cmp edx," ICP"      ; bus on the board.
-;    jnz .setup_pe; EDX=20494350h
-;                         ; read last data
-;	mov	dx, 0cfch	     ; config data port
-;	in	eax, dx          ;
-;	cmp	eax, -1		     ; FFFFFFFF?
-;	jz	.setup_pe		 ; nothing
-;	mov word[es:10],0x0f0f
-
-;	call k1s
 	jmp k1s
 ;...............................
 ;  data
