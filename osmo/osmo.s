@@ -22,52 +22,40 @@ org 7c00h
 k0s:
 .setup_init:
 	cli
-	mov sp,k0s
-;	xor ax,ax
-;	mov ds,ax
-	mov [k0s.dr],dx
+	xor ax,ax		; initiate cpu state
+	mov ds,ax
+	cld				; clear direction flag
+	mov sp,k0s		; setup stack pointer
+	mov [k0s.dr],dx	; save the boot drive (dl)
 .setup_screen:
 	mov ax,13h		; bios:vga 320x200x8b
-;	mov ax,4f02h	
-;	mov bx,10fh     ; 320x200x24b rgb 888
-;    mov bx,114h     ; 800x600 (64K Colors)
 	int 10h
 	mov ax,0a000h
 	mov es,ax
+	mov word[es:0],0x0202
 	mov word[es:4],0x0101
 ;	jmp $
 .setup_load:
+	mov ah,0		; reset disk system
+	int 13h
+	; setup read
 	mov ax,0x021f	; bios:read(02) 1fh sectors x 512B
-	mov cx,2		; from sector 2 (1st=1)
-;	xor dh,dh       ; head 0
-;	mov dl,[k0.dr]  ; default drive
-	mov bx,7e0h		; dest seg
-	mov es,bx		;
-	xor bx,bx       ; es:bx=$7e00
+	mov cx,0x0002	; from cylinder 0 (ch) sector 2 (1st=1)
+	mov dh,0		; head 0
+;	mov dl,[k0.dr]	; default drive
+	xor bx,bx
+	mov es,bx
+	mov bx,0x7e00
 	int 13h			; load $7e00 to $8c00
-;	jc .setup_drw
-	mov ax,0a000h
-	mov es,ax
-	mov word[es:8],0x0202
-;	jmp $
+	jnc .setup_drw	; if no error continue
+	mov ax,0a000h	; error while reading
+	mov es,ax		; put red on screen
+	mov word[es:0],0x0404
+	jmp $			; hang
 .setup_drw:
-;	mov ax,$
-;	mov sp,ax
-;	push cx
-;	.3  mov cx,200
-;		push cx
-;		xor ax,ax
-;		.4 mov cx,320
-;			stosb
-;			inc ax
-;		loop .4
-;		pop cx
-;	loop .3
-;	pop cx
-;	jmp $
-
-;	xor ax,ax ; wait for key from bios
-;	int 16h   ; returns key in al
+	mov ax,0a000h	; segment register to vga
+	mov es,ax		;
+	mov word[es:8],0x0202 ; status
 
 	xor ax,ax       ; must or crash on eeepc
 	mov ds,ax       ; |
@@ -75,11 +63,9 @@ k0s:
 	mov si,7c00h
 	mov di,320*100
 	rep movsb
-;	jmp $
+
 	mov word[es:12],0x0303
 ;	jmp $
-;	xor ax,ax
-;	int 16h
 .setup_enable_a20:
 	in al,0x92      ; enable a20 line
 	or al,2         ;  to access
@@ -94,7 +80,7 @@ k0s:
 	mov eax,cr0		; enable
 	or al,1			; protected
 	mov cr0,eax		; mode
-	jmp 8:.setup_pm
+	jmp 8:.setup_pm	; jmp to flush
 ;...............................
 align 16
 .gdt	dq 0x0000000000000000 ;  4g pl0
@@ -119,7 +105,7 @@ align 16
 .idtr   dw 0x03ff
         dd mem.idta
 
-align 16
+align 16	; why not 32?
 bits 32
 .setup_pm:
 	mov dword[es:16],0x04040404
@@ -751,52 +737,7 @@ bmp.type_byte_hex:; ebx:byte edx:font
 
 align 16
 k1s:                              ; 8200h
-pci.index_p equ 0cf8h
-pci.data_p  equ 0cfch
-;	mov dword[0xa0030],0x09090909
-	mov dword[es:56],0x09090909
-;	jmp $
-
-    mov edi,8*bmp.wi+128
-    mov word[bmp.xof],128
-    mov cx,0
-    .3  mov ax,8000h            ; set bit 31 (after shift)
-        or  al,0                ; add in bus number
-        shl eax,16              ; [bus8][dev5][fn2] 
-        mov ax,cx               ; device (0-31)
-        shl ax,11               ; slide device # up to bits 15:11
-        mov al,0                ; function
-        or  ah,al               ; add function into bits 10:8
-        mov al,0                ; vendor
-        mov dx,pci.index_p
-        out dx,eax              ; send our request out
-        mov dx,pci.data_p            
-        in  eax,dx              ; read back 32bit value.
-
-        cmp eax,0x802910ec ; realtek8029  ne2k
-        jnz .5
-        mov esi,ne2000
-        mov ebx,fnt
-        call bmp.drw_ascii
-        call bmp.type_spc
-  .5    mov ebx,eax
-        mov eax,34
-        push ecx
-        mov ecx,4
-        .2 mov edx,fnt
-           call bmp.type_byte_hex
-           call bmp.type_spc
-           shr ebx,8
-        loop .2
-        pop ecx
-        call bmp.drw_nl
-        inc cx
-        cmp cx,16
-    jne .3
-
-	mov dword[es:64],0x0a0a0a0a
-;	jmp $
-    sti
+	sti
 .loop:
 	mov edx,[k0s.tc]
 	and edx,111b
