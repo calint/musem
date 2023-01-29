@@ -1,2 +1,2 @@
 # musem
-some experiments with assemble for i386
+some experiments with assembler for i386
