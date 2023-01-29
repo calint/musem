@@ -75,9 +75,9 @@ k0s:
 	mov si,7c00h
 	mov di,320*100
 	rep movsb
-
+;	jmp $
 	mov word[es:12],0x0303
-
+;	jmp $
 ;	xor ax,ax
 ;	int 16h
 .setup_enable_a20:
@@ -86,6 +86,7 @@ k0s:
 	out 0x92,al     ;    odd megs
 	mov word[es:4],0x0303
 .setup_pic:
+;	jmp $
 .setup_enable_pm:
 ;	xor ax,ax
 ;	mov ds,ax
@@ -200,7 +201,8 @@ bits 32
 ;	jz	.setup_pe		 ; nothing
 ;	mov word[es:10],0x0f0f
 
-	call k1s
+;	call k1s
+	jmp k1s
 ;...............................
 ;  data
 ;...............................

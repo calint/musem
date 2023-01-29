@@ -1,1 +1,5 @@
 tested on QEMU emulator version 2.5.0
+
+2023-01-29:
+  built with g++ (Ubuntu 12.2.0-3ubuntu1) 12.2.0
+  tested on QEMU emulator version 7.0.0 (Debian 1:7.0+dfsg-7ubuntu2.1)
