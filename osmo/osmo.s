@@ -218,10 +218,10 @@ sector2: 				; 07e00h
 align 16
 kierr:
 	cli
-	mov dword[es:000],0x03000003
-	mov dword[es:320],0x04040404
-	mov dword[es:640],0x04030304
-	mov dword[es:960],0x04040404
+	mov dword[es:000],0x06060606
+	mov dword[es:320],0x06060606
+	mov dword[es:640],0x06060606
+	mov dword[es:960],0x06060606
 	jmp $
 
 align 16
@@ -758,18 +758,6 @@ k1s:                              ; 8200h
 	mov di,(bmp.wi*3+bmp.wi-fnt.wi*fnt.t.c-(fnt.wi<<2)+1)
 	call bmp.drw_chset
 
-;	jmp $
-
-;    mov edi,8*bmp.wi+128
-;    mov edx,fnt
-;    mov eax,34
-;    mov ebx,0a0h
-;    mov ecx,16
-;    .2 call bmp.type_byte_hex
-;       call bmp.type_spc
-;       inc ebx
-;    loop .2
-
 	mov bx,fnt.t
 	mov di,bmp.wi*11+11
     mov dword[bmp.xof],11
@@ -791,8 +779,8 @@ k1s:                              ; 8200h
 	inc dword[k0s.fc]
 	hlt
 ;	jmp $
-	call .loop                   ; stack train bug	
-;	jmp .loop
+;	call .loop                   ; stack train bug	
+	jmp .loop
 ;...............................
 ;txt:
 align 4
