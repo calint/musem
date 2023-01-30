@@ -119,7 +119,7 @@ asm("    movb $0x8e,  5(%ebx)");// type_attrs p,pv0,!s,i32b
 asm("    movw $0x0000,6(%ebx)");// offfset 16..31
 asm("    add $8,%bx");
 asm("loop 1b");
-asm("movl $0x0e0e0f0f,0xa0118");
+asm("movl $0x0e0e0f0f,0xa0118");// ? remove debugging
 asm("movw $isr_tck,IDT+0x40");
 asm("movw $isr_kbd,IDT+0x48");
 asm("lidt idtr");
@@ -165,7 +165,7 @@ asm("isr_kbd:");
 asm("  push %ax");
 asm("  in $0x60,%al");// read keyboard port
 asm("  mov %al,osca_key");// store
-asm("  mov %al,0xa0100");// to vga
+asm("  mov %al,0xa0100");// to vga remove debugging?
 asm("  pushal");// save register
 asm("  call osca_keyb_ev");// call device keyb function ev
 asm("  popal");// restore register
@@ -177,12 +177,12 @@ asm("  iret");
 asm(".align 16,0x90");
 asm("isr_tck:");
 asm("  cli");// disable interrupts while task switching
-asm("  movw $0x0e0e,0xa0200");
+asm("  movw $0x0e0e,0xa0200");// remove debugging?
 asm("  mov %eax,isr_tck_eax");// save eax,ebx
 asm("  mov %ebx,isr_tck_ebx");
 asm("  incl osca_t");// increase 64b ticker
 asm("  adcl $0,osca_t1");
-asm("  mov osca_t,%eax");// on screen
+asm("  mov osca_t,%eax");// on screen. remove debugging?
 asm("  mov %eax,0xa0130");
 asm("  mov osca_tsk_a,%ebx");// ebx points to active task
 asm("  mov (%esp),%eax");// get eip before irq from stack
