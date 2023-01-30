@@ -1,4 +1,5 @@
-; from stackoverflow.com
+; from https://stackoverflow.com/questions/47277702/custom-bootloader-booted-via-usb-drive-produces-incorrect-output-on-some-compute
+
 ; Simple bootloader that dumps the bytes in the BIOS Parameter
 ; Block BPB. First 3 bytes should be EB 3C 90. The rest should be 0xAA
 ; unless you have a BIOS that wrote drive geometry information
