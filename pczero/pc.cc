@@ -129,9 +129,36 @@ asm("mov osca_tsk_a,%ebx");// ebx points to active task record
 asm("mov 4(%ebx),%esp");// restore esp
 asm("sti");// enable interrupts (racing?)
 asm("jmp *(%ebx)");// jmp to first task
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
+asm(".align 16");
+asm("osca_drv_b:.byte 0x00");// boot drive
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - partition
+asm(".space _start+436-.,0");// reserved
+asm(".space 10,0");// partition table
+asm(".space 16,0");// #1
+asm(".space 16,0");// #2
+asm(".space 16,0");// #3
+asm(".space 16,0");// #4
+asm(".word 0xaa55");// pc boot sector signature
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - 
+asm("sector2:");// 0x7e00 (saved at shutdown)
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - saved
+asm("osca_t:.long 0x00000000");
+asm("osca_t1:.long 0x00000000");
+asm("osca_key:.long 0x00000000");
+asm(".space sector2+512-.");
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - 
+asm("sector3:");// 0x8000 tasks switcher
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
+asm("osca_tsk_a:.long tsk");
+asm("isr_tck_eax:.long 0x00000000");
+asm("isr_tck_ebx:.long 0x00000000");
+asm("isr_tck_esp:.long 0x00000000");
+asm("isr_tck_eip:.long 0x00000000");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ierr
 asm(".align 16");
-asm("isr_err:cli");
+asm("isr_err:");
+asm("  cli");
 asm("  incw 0xa0000");
 asm("  jmp isr_err");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ikbd
@@ -148,32 +175,7 @@ asm("  mov $0x20,%al");// ack interrupt
 asm("  out %al,$0x20");
 asm("  pop %ax");
 asm("  iret");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
-asm(".align 16");
-asm("osca_drv_b:.byte 0x00");// boot drive
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - partition
-asm(".space _start+436-.,0");// reserved
-asm(".space 10,0");// partition table
-asm(".space 16,0");// #1
-asm(".space 16,0");// #2
-asm(".space 16,0");// #3
-asm(".space 16,0");// #4
-asm(".word 0xaa55");// pc boot sector signature
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("sector2:");// 0x7e00 (saved at shutdown)
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
-asm("osca_t:.long 0x00000000");
-asm("osca_t1:.long 0x00000000");
-asm("osca_key:.long 0x00000000");
-asm(".space sector2+512-.");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("sector3:");// 0x8000 tasks switcher
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - itck
-asm("osca_tsk_a:.long tsk");
-asm("isr_tck_eax:.long 0x00000000");
-asm("isr_tck_ebx:.long 0x00000000");
-asm("isr_tck_esp:.long 0x00000000");
-asm("isr_tck_eip:.long 0x00000000");
 asm(".align 16");
 asm("isr_tck:");
 asm("  cli");// disable interrupts while task switching
@@ -265,7 +267,7 @@ asm("rm:");
 asm("xor %ax,%ax");
 asm("mov %ax,%ds");
 asm("mov %ax,%ss");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - write
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - save
 // save 2nd sector
 asm("mov $0x0301,%ax");// command 3, 1 sector
 asm("mov $0x0002,%cx");// track 0, sector 2
