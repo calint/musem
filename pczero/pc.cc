@@ -33,7 +33,7 @@ asm("_main:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("xor %bx,%bx");
 asm("mov %bx,%ds");
-asm("mov %dl,(osca_drv_b)");// save boot drive
+asm("mov %dl,osca_drv_b");// save boot drive
 asm("mov %bx,%ss");// setup stack
 asm("mov $_start,%sp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -120,12 +120,12 @@ asm("    movw $0x0000,6(%ebx)");// offfset 16..31
 asm("    add $8,%bx");
 asm("loop 1b");
 asm("movl $0x0e0e0f0f,0xa0118");
-asm("movw $isr_tck,(IDT+0x40)");
-asm("movw $isr_kbd,(IDT+0x48)");
+asm("movw $isr_tck,IDT+0x40");
+asm("movw $isr_kbd,IDT+0x48");
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -start
 //asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
-asm("mov (osca_tsk_a),%ebx");// ebx points to active task record
+asm("mov osca_tsk_a,%ebx");// ebx points to active task record
 asm("mov 4(%ebx),%esp");// restore esp
 asm("sti");// enable interrupts (racing?)
 asm("jmp *(%ebx)");// jmp to first task
@@ -178,13 +178,13 @@ asm(".align 16");
 asm("isr_tck:");
 asm("  cli");// disable interrupts while task switching
 asm("  movw $0x0e0e,0xa0200");
-asm("  mov %eax,(isr_tck_eax)");// save eax,ebx
-asm("  mov %ebx,(isr_tck_ebx)");
-asm("  incl (osca_t)");// increase 64b ticker
-asm("  adcl $0,(osca_t1)");
-asm("  mov (osca_t),%eax");// on screen
+asm("  mov %eax,isr_tck_eax");// save eax,ebx
+asm("  mov %ebx,isr_tck_ebx");
+asm("  incl osca_t");// increase 64b ticker
+asm("  adcl $0,osca_t1");
+asm("  mov osca_t,%eax");// on screen
 asm("  mov %eax,0xa0130");
-asm("  mov (osca_tsk_a),%ebx");// ebx points to active task
+asm("  mov osca_tsk_a,%ebx");// ebx points to active task
 asm("  mov (%esp),%eax");// get eip before irq from stack
 asm("  mov %eax,(%ebx)");// save to task.eip
 asm("  mov 8(%esp),%eax");// get eflags from stack
@@ -195,24 +195,24 @@ asm("  mov %eax,4(%ebx)");// save to task.esp
 asm("  mov %ebx,%esp");// save gprs
 asm("  add $48,%esp");// move to end of task record
 asm("  pushal");// pushes eax,ecx,edx,ebx,esp0,ebp,esi,edi
-asm("  mov (isr_tck_eax),%eax");// save proper eax,ebx
+asm("  mov isr_tck_eax,%eax");// save proper eax,ebx
 asm("  mov %eax,44(%ebx)");// task.eax
-asm("  mov (isr_tck_ebx),%eax");
+asm("  mov isr_tck_ebx,%eax");
 asm("  mov %eax,32(%ebx)");// task.ebx
 asm("  add $48,%ebx");// next task
 asm("  cmp $tsk_eot,%ebx");// if last
 asm("  jl 7f");
 asm("    mov $tsk,%ebx");// roll
 asm("  7:");
-asm("  mov %ebx,(osca_tsk_a)");// save pointer of task
+asm("  mov %ebx,osca_tsk_a");// save pointer of task
 asm("  mov 4(%ebx),%esp");// restore esp
-asm("  mov %esp,(isr_tck_esp)");// save esp, will be used as scratch
+asm("  mov %esp,isr_tck_esp");// save esp, will be used as scratch
 asm("  mov (%ebx),%esp");// restore eip
-asm("  mov %esp,(isr_tck_eip)");// save for jump
+asm("  mov %esp,isr_tck_eip");// save for jump
 asm("  mov %ebx,%esp");// restore gprs
 asm("  add $16,%esp");// position stack pointer for pop
 asm("  popal");
-asm("  mov (isr_tck_esp),%esp");// restore esp
+asm("  mov isr_tck_esp,%esp");// restore esp
 asm("  push %ax");// ack irq
 asm("  mov $0x20,%al");
 asm("  out %al,$0x20");
@@ -270,7 +270,7 @@ asm("mov %ax,%ss");
 asm("mov $0x0301,%ax");// command 3, 1 sector
 asm("mov $0x0002,%cx");// track 0, sector 2
 asm("xor %dh,%dh");// head 0
-asm("mov (osca_drv_b),%dl");// saved boot drive
+asm("mov osca_drv_b,%dl");// saved boot drive
 asm("xor %bx,%bx");// from es:bx (0:0x7e00)
 asm("mov %bx,%es");
 asm("mov $0x7e00,%bx");
