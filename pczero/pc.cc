@@ -140,16 +140,14 @@ asm(".space 16,0");// #2
 asm(".space 16,0");// #3
 asm(".space 16,0");// #4
 asm(".word 0xaa55");// pc boot sector signature
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - 
-asm("sector2:");// 0x7e00 (saved at shutdown)
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - saved
+asm("sector2:");// 0x7e00 (saved at shutdown)
 asm("osca_t:.long 0x00000000");
 asm("osca_t1:.long 0x00000000");
 asm("osca_key:.long 0x00000000");
 asm(".space sector2+512-.");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - 
-asm("sector3:");// 0x8000 tasks switcher
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
+asm("sector3:");// 0x8000 tasks switcher
 asm("osca_tsk_a:.long tsk");
 asm("isr_tck_eax:.long 0x00000000");
 asm("isr_tck_ebx:.long 0x00000000");
@@ -248,9 +246,8 @@ asm("  .long tsk10,0x000acf80,0x00000000,0x00000000, 0x00000000,0x00000000,0x000
 asm("  .long tsk8,0x000acd00,0x00000000,0x00000000, 0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000");
 asm("  .long tsk8,0x000aca80,0x00000000,0x00000000, 0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000");
 asm("tsk_eot:");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm(".align 16,0");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - shutdown
+asm(".align 16,0");
 asm("mode16:");// protected mode to 16b mode
 asm(".code16");
 asm("mov $0x20,%ax");
