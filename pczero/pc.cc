@@ -1,9 +1,17 @@
-//tested on:
+// tested on:
 // * dell inspiron 1545
 // * asus-eeepc-4g
 // * hp-compaq-mini-110
 // * sony-vaio-vgnfw11m
 // * qemu 0.11.0 on linux 2.6
+// * qemu 7.0.0 on linux 5.19
+//
+// 00000-003FF  IVT (Interrupt Vector Table)
+// 00400-005FF  BDA (BIOS Data Area)
+// 00600-9FFFF  Ordinary application RAM
+// A0000-BFFFF  Video memory
+// C0000-EFFFF  Optional ROMs (The VGA ROM is usually located at C0000)
+// F0000-FFFFF  BIOS ROM
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".set IDT,0x600");//interrupt descriptor table address
 asm(".set LOAD_SECTORS,0x1f");//15½K
@@ -268,28 +276,3 @@ asm("  jmp 8b");
 asm("page0:");
 asm(".align 0x400");
 asm(".space 0x1000,1");
-
-
-//asm("mov $0x4f02,%ax");//vesa mode
-//asm("mov $0x410f,%bx");// 320x200x24 bmp
-//asm("mov $0x8100,%bx");// 640x400x256 graphics
-//asm("mov $0x8112,%bx");// 640x480x16.8M
-//asm("mov $0x8115,%bx");// 800x600x16.8M
-//asm("mov $0x8118,%bx");// 1024x768x16.8M
-//AX = 4F01h; ES:DI = pointer to 256 byte buffer;
-//CX = mode number
-//INT 10h
-//hx
-//00	ModeAttributes	WORD	bit 7 (v2.0+) Set if linear framebuffer mode supported
-//28	PhysBasePtr	DWORD	(v2.0+) Physical address of linear framebuffer
-//2C	OffScreenMemOffset	DWORD	(v2.0+) Offset from start of frame buffer to first application usable video memory which is not normally visible. It is possible that there will be offsets between normal onscreen memory and this field value which should not be altered.
-//30	OffScreenMemSize	WORD	(v2.0+) Number of kilobytes of application usable offscreen memory.
-
-/*
-  00000-003FF  IVT (Interrupt Vector Table)
-  00400-005FF  BDA (BIOS Data Area)
-  00600-9FFFF  Ordinary application RAM
-  A0000-BFFFF  Video memory
-  C0000-EFFFF  Optional ROMs (The VGA ROM is usually located at C0000)
-  F0000-FFFFF  BIOS ROM
-*/
