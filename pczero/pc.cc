@@ -8,24 +8,26 @@
 asm(".set IDT,0x600");//interrupt descriptor table address
 asm(".set LOAD_SECTORS,0x1f");//15½K
 asm(".set PROG_SIZE,0x200+0x1f*0x200");
-asm(".code16");
 asm(".global osca_key");
 asm(".global osca_t");
 asm(".global osca_t1");
 asm(".global _start");
+asm(".code16");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("xor %bx,%bx");
 asm("mov %bx,%ds");
-asm("movb %dl,(osca_drv_b)");//save boot drive
-asm("mov %bx,%ss");
+asm("movb %dl,(osca_drv_b)");// save boot drive
+asm("mov %bx,%ss");// setup stack
 asm("mov $_start,%sp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $(0x0200+LOAD_SECTORS),%ax");
-asm("mov $0x0002,%cx");//from sector 2
-asm("mov $0x07e0,%bx");//to 0x7e00
-asm("mov %bx,%es");
+// %dl is the boot drive unchanged
+asm("mov $(0x0200+LOAD_SECTORS),%ax");// command 2, 1fh sectors
+asm("mov $0x0002,%cx");// from cylinder 0, sector 2
+asm("mov $0,%dh");// head 0
 asm("xor %bx,%bx");
+asm("mov %bx,%es");
+asm("mov $0x7e00,%bx");//to es:0x7e00
 asm("int $0x13");
 //asm("jnc 1f");
 //asm("  movw $0xb800,%ax");//console segment

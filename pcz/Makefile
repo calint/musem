@@ -1,7 +1,8 @@
 INSTALL_TO=/dev/sdb
 IMG=install.img
 BIN=pc.img
-SRC=pc.cc file.cc main.cc
+#SRC=pc.cc file.cc main.cc
+SRC=pc.cc
 CC=g++ -m32 -O0 -fno-pie
 CW=-Wall -Wextra -Wfatal-errors
 CF=-nostdlib -Wl,--oformat,binary -Wl,-Ttext,0x7c00

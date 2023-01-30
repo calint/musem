@@ -1,0 +1,20 @@
+
+pcz.img:     file format binary
+
+
+Disassembly of section .data:
+
+00000000 <.data>:
+   0:	b8 13 00             	mov    $0x13,%ax
+   3:	cd 10                	int    $0x10
+   5:	b8 00 a0             	mov    $0xa000,%ax
+   8:	8e c0                	mov    %ax,%es
+   a:	26 c7 06 00 00 01 01 	movw   $0x101,%es:0x0
+  11:	26 c7 06 04 00 02 02 	movw   $0x202,%es:0x4
+  18:	26 c7 06 08 00 03 03 	movw   $0x303,%es:0x8
+  1f:	26 c7 06 0c 00 04 04 	movw   $0x404,%es:0xc
+  26:	26 c7 06 10 00 05 05 	movw   $0x505,%es:0x10
+  2d:	eb fe                	jmp    0x2d
+	...
+ 1fb:	00 00                	add    %al,(%bx,%si)
+ 1fd:	00 55 aa             	add    %dl,-0x56(%di)
