@@ -13,7 +13,7 @@
 // A0000-BFFFF  Video memory
 // C0000-EFFFF  Optional ROMs (The VGA ROM is usually located at C0000)
 // F0000-FFFFF  BIOS ROM
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - intro
 asm(".set IDT,0x600");// interrupt descriptor table address
 asm(".set LOAD_SECTORS,0x1f");// 15½K
 asm(".set PROG_SIZE,0x200+LOAD_SECTORS*0x200");
@@ -32,19 +32,19 @@ asm(".space 59,0x90");// BPB area that may be written to by BIOS
 asm("_main:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - setup
 asm("xor %bx,%bx");
-asm("mov %bx,%ds");
+asm("mov %bx,%ds");// data segment
 asm("mov %dl,osca_drv_b");// save boot drive
 asm("mov %bx,%ss");// setup stack
-asm("mov $_start,%sp");
+asm("mov $_start,%sp");// 0x7c00
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - load
 // %dl is the unchanged boot drive
-asm("cld");
+asm("cld");// clear direction (forward)
 asm("mov $(0x0200+LOAD_SECTORS),%ax");// command 2, 1fh sectors
 asm("mov $0x0002,%cx");// from cylinder 0, sector 2
 asm("mov $0,%dh");// head 0
-asm("xor %bx,%bx");
+asm("xor %bx,%bx");// to es:bx
 asm("mov %bx,%es");
-asm("mov $0x7e00,%bx");// to es:bx (0:0x7e00)
+asm("mov $0x7e00,%bx");// (0:0x7e00)
 asm("int $0x13");
 asm("jnc 1f");// if no error jmp
 asm("  mov $0xb800,%ax");// console segment
@@ -77,7 +77,7 @@ asm("mov %cr0,%eax");// enter 32b protected mode
 asm("or $0x1,%al");
 asm("mov %eax,%cr0");
 asm("jmp $8,$pm");// jmp to flush
-asm(".align 16,0x00");
+asm(".align 16,0x90");
 asm("gdt:.quad 0x0000000000000000");//0x00:
 asm("    .quad 0x00cf9a000000ffff");//0x08: 32b code 4g pl0 rx
 asm("	 .quad 0x00cf92000000ffff");//0x10: 32b data 4g pl0 rw
@@ -130,7 +130,7 @@ asm("mov 4(%ebx),%esp");// restore esp
 asm("sti");// enable interrupts (racing?)
 asm("jmp *(%ebx)");// jmp to first task
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
-asm(".align 16");
+asm(".align 16,0x90");
 asm("osca_drv_b:.byte 0x00");// boot drive
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - partition
 asm(".space _start+436-.,0");// reserved
@@ -154,13 +154,13 @@ asm("isr_tck_ebx:.long 0x00000000");
 asm("isr_tck_esp:.long 0x00000000");
 asm("isr_tck_eip:.long 0x00000000");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ierr
-asm(".align 16");
+asm(".align 16,0x90");
 asm("isr_err:");
 asm("  cli");
 asm("  incw 0xa0000");
 asm("  jmp isr_err");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ikbd
-asm(".align 16");
+asm(".align 16,0x90");
 asm("isr_kbd:");
 asm("  push %ax");
 asm("  in $0x60,%al");// read keyboard port
@@ -174,7 +174,7 @@ asm("  out %al,$0x20");
 asm("  pop %ax");
 asm("  iret");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - itck
-asm(".align 16");
+asm(".align 16,0x90");
 asm("isr_tck:");
 asm("  cli");// disable interrupts while task switching
 asm("  movw $0x0e0e,0xa0200");
@@ -247,7 +247,7 @@ asm("  .long tsk8,0x000acd00,0x00000000,0x00000000, 0x00000000,0x00000000,0x0000
 asm("  .long tsk8,0x000aca80,0x00000000,0x00000000, 0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000");
 asm("tsk_eot:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - shutdown
-asm(".align 16,0");
+asm(".align 16,0x90");
 asm("mode16:");// protected mode to 16b mode
 asm(".code16");
 asm("mov $0x20,%ax");
@@ -259,7 +259,7 @@ asm("mov %cr0,%eax");
 asm("and $0xfe,%al");
 asm("mov %eax,%cr0");
 asm("jmp $0x0,$rm");
-asm(".align 16");
+asm(".align 16,0x90");
 asm("rm:");
 asm("xor %ax,%ax");
 asm("mov %ax,%ds");
