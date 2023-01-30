@@ -126,8 +126,8 @@ asm("lidt idtr");
 //asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
 asm("mov (osca_tsk_a),%ebx");// ebx points to active task record
 asm("mov 4(%ebx),%esp");// restore esp
-asm("sti");// enable interrupts
-asm("jmp *(%ebx)");// jmp to restored eip (state not restored. assume tsk0 special?)
+asm("sti");// enable interrupts (racing?)
+asm("jmp *(%ebx)");// jmp to first task
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
 asm("isr_err:cli");
