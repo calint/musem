@@ -17,11 +17,11 @@
 asm(".set IDT,0x600");// interrupt descriptor table address
 asm(".set LOAD_SECTORS,0x1f");// 15½K
 asm(".set PROG_SIZE,0x200+LOAD_SECTORS*0x200");
-asm(".global osca_key");
-asm(".global osca_t");
-asm(".global osca_t1");
-asm(".global _start");
-asm(".code16");
+asm(".global osca_key");// last pressed key
+asm(".global osca_t");// lower ticker value
+asm(".global osca_t1");// high ticker value
+asm(".global _start");// export entry point
+asm(".code16");// boot in 16 bit mode
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - bpb
 // jump over BIOS Parameter Block (BPB) because 
