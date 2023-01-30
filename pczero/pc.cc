@@ -5,6 +5,7 @@
 // * sony-vaio-vgnfw11m
 // * qemu 0.11.0 on linux 2.6
 // * qemu 7.0.0 on linux 5.19
+// * asus zenbook
 //
 // 00000-003FF  IVT (Interrupt Vector Table)
 // 00400-005FF  BDA (BIOS Data Area)
@@ -51,7 +52,7 @@ asm("  mov %ax,%es");
 asm("  movw $0x1045,%es:0");// 'E' to top left corner
 asm("  2:cli");// hang
 asm("    hlt");
-asm("    jmp 2b");
+asm("    jmp 2b");// enough with cli,hlt?
 asm("1:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("mov $0x13,%ax");// vga mode 320x200x8 bmp @ 0xa0000
