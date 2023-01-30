@@ -13,26 +13,28 @@ build:
 	@clear
 	@$(CC) -o $(BIN) $(SRC) $(CF) $(CW)
 	@chmod -x $(BIN)
-	@cp $(BIN) $(IMG)
-	@date>>$(IMG)
-	@ls -l Makefile>>$(IMG)
-	@ls -l $(SRC)>>$(IMG)
-	@cat Makefile>>$(IMG)
-	@cat $(SRC)>>$(IMG)
+#	@cp $(BIN) $(IMG)
+#	@date>>$(IMG)
+#	@ls -l Makefile>>$(IMG)
+#	@ls -l $(SRC)>>$(IMG)
+#	@cat Makefile>>$(IMG)
+#	@cat $(SRC)>>$(IMG)
 	
 print:
 	@pwd
-	@du -bh $(IMG) $(BIN) $(SRC)
+#	@du -bh $(IMG) $(BIN) $(SRC)
+	@du -bh $(BIN) $(SRC)
 	
 clean:
 	@rm -f $(IMG) $(BIN)
 
 display:
-	@qemu-system-i386 -m 1 $(IMG)
+#	@qemu-system-i386 -m 1 $(IMG)
+	@qemu-system-i386 -m 1 $(BIN)
 	 
-install:
-	sudo dd if=$(IMG) of=$(INSTALL_TO)&&sync
+#install:
+#	sudo dd if=$(IMG) of=$(INSTALL_TO)&&sync
 
-readusb:
-	sudo dd if=$(INSTALL_TO) count=2|hx|f 00000200
+#readusb:
+#	sudo dd if=$(INSTALL_TO) count=2|hx|f 00000200
 
