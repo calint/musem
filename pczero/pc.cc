@@ -23,20 +23,20 @@ asm(".global osca_t1");
 asm(".global _start");
 asm(".code16");
 asm("_start:");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - bpb
 // jump over BIOS Parameter Block (BPB) because 
 // that memory may be written to by BIOS when booting from USB
 asm("jmp _main");
 asm(".space 3-(.-_start),0x90");// support 2 or 3 bytes encoded jmp
 asm(".space 59,0x90");// BPB area that may be written to by BIOS
 asm("_main:");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - setup
 asm("xor %bx,%bx");
 asm("mov %bx,%ds");
 asm("mov %dl,osca_drv_b");// save boot drive
 asm("mov %bx,%ss");// setup stack
 asm("mov $_start,%sp");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - load
 // %dl is the unchanged boot drive
 asm("cld");
 asm("mov $(0x0200+LOAD_SECTORS),%ax");// command 2, 1fh sectors
@@ -54,10 +54,10 @@ asm("  2:cli");// hang
 asm("    hlt");
 asm("    jmp 2b");// enough with cli,hlt?
 asm("1:");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - mode 13h
 asm("mov $0x13,%ax");// vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - display
 //asm("movw $0x0404,%es:0x100");
 asm("mov $0xa000,%ax");
 asm("mov %ax,%es");
@@ -65,12 +65,12 @@ asm("mov $0x8000,%di");
 asm("mov $0x7c00,%si");
 asm("mov $PROG_SIZE>>1,%cx");
 asm("rep movsw");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - a20
 //asm("movw $0x0404,%es:0x104");
 asm("in $0x92,%al");// enable a20 line (odd megs)
 asm("or $2,%al");
 asm("out %al,$0x92");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -32b
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - 32b
 //asm("movw $0x0404,%es:0x108");
 asm("lgdt gdtr");// load global descriptor tables
 asm("mov %cr0,%eax");// enter 32b protected mode
@@ -106,7 +106,7 @@ asm("xor %edi,%edi");
 asm("xor %esi,%esi");
 asm("xor %ebp,%ebp");
 //asm("movw $0x0404,0xa0110");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -isr
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - isr
 //asm("movw $0x0404,0xa0114");
 asm("cli");// disable interrupts
 asm("mov $IDT,%ebx");//idt address
@@ -123,18 +123,18 @@ asm("movl $0x0e0e0f0f,0xa0118");
 asm("movw $isr_tck,IDT+0x40");
 asm("movw $isr_kbd,IDT+0x48");
 asm("lidt idtr");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -start
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - start
 //asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
 asm("mov osca_tsk_a,%ebx");// ebx points to active task record
 asm("mov 4(%ebx),%esp");// restore esp
 asm("sti");// enable interrupts (racing?)
 asm("jmp *(%ebx)");// jmp to first task
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ierr
 asm(".align 16");
 asm("isr_err:cli");
 asm("  incw 0xa0000");
 asm("  jmp isr_err");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - ikbd
 asm(".align 16");
 asm("isr_kbd:");
 asm("  push %ax");
@@ -148,10 +148,10 @@ asm("  mov $0x20,%al");// ack interrupt
 asm("  out %al,$0x20");
 asm("  pop %ax");
 asm("  iret");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
 asm(".align 16");
 asm("osca_drv_b:.byte 0x00");// boot drive
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - partition
 asm(".space _start+436-.,0");// reserved
 asm(".space 10,0");// partition table
 asm(".space 16,0");// #1
@@ -161,14 +161,14 @@ asm(".space 16,0");// #4
 asm(".word 0xaa55");// pc boot sector signature
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("sector2:");// 0x7e00 (saved at shutdown)
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - vars
 asm("osca_t:.long 0x00000000");
 asm("osca_t1:.long 0x00000000");
 asm("osca_key:.long 0x00000000");
 asm(".space sector2+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("sector3:");// 0x8000 tasks switcher
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - itck
 asm("osca_tsk_a:.long tsk");
 asm("isr_tck_eax:.long 0x00000000");
 asm("isr_tck_ebx:.long 0x00000000");
@@ -220,7 +220,7 @@ asm("  pop %ax");
 asm("  sti");// enable interrupts
 asm("  jmp *isr_tck_eip");// jmp to restored eip. racing?
 asm(".space sector3+512-.");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - tasks
 asm("sector4:");//0x8200 tasks state table
 asm("tsk:");// eip,  esp,       eflags,     bits,       edi        esi        ebp        esp0       ebx        edx        ecx        eax
 asm("  .long tsk0,0x000afa00,0x00000000,0x00000000, 0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000");
@@ -248,7 +248,7 @@ asm("  .long tsk8,0x000aca80,0x00000000,0x00000000, 0x00000000,0x00000000,0x0000
 asm("tsk_eot:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16,0");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - shutdown
 asm("mode16:");// protected mode to 16b mode
 asm(".code16");
 asm("mov $0x20,%ax");
@@ -265,7 +265,7 @@ asm("rm:");
 asm("xor %ax,%ax");
 asm("mov %ax,%ds");
 asm("mov %ax,%ss");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - write
 // save 2nd sector
 asm("mov $0x0301,%ax");// command 3, 1 sector
 asm("mov $0x0002,%cx");// track 0, sector 2
@@ -277,7 +277,7 @@ asm("mov $0x7e00,%bx");
 asm("int $0x13");
 asm("jc 8f");// if error
 // display save ack?
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - done
 asm("8:cli");
 asm("  hlt");
 asm("  jmp 8b");
