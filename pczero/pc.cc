@@ -13,8 +13,8 @@
 // C0000-EFFFF  Optional ROMs (The VGA ROM is usually located at C0000)
 // F0000-FFFFF  BIOS ROM
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm(".set IDT,0x600");//interrupt descriptor table address
-asm(".set LOAD_SECTORS,0x1f");//15½K
+asm(".set IDT,0x600");// interrupt descriptor table address
+asm(".set LOAD_SECTORS,0x1f");// 15½K
 asm(".set PROG_SIZE,0x200+0x1f*0x200");
 asm(".global osca_key");
 asm(".global osca_t");
@@ -36,22 +36,21 @@ asm("mov $0x0002,%cx");// from cylinder 0, sector 2
 asm("mov $0,%dh");// head 0
 asm("xor %bx,%bx");
 asm("mov %bx,%es");
-asm("mov $0x7e00,%bx");//to es:0x7e00
+asm("mov $0x7e00,%bx");// to es:bx (0:0x7e00)
 asm("int $0x13");
-asm("jnc 1f");// if error
-asm("  mov $0xb800,%ax");//console segment
+asm("jnc 1f");// if no error jmp
+asm("  mov $0xb800,%ax");// console segment
 asm("  mov %ax,%es");
-asm("  movw $0x1045,%es:0");//top left corner
-asm("  2:cli");//hlt
+asm("  movw $0x1045,%es:0");// 'E' to top left corner
+asm("  2:cli");// hang
 asm("    hlt");
 asm("    jmp 2b");
 asm("1:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $0x13,%ax");//vga mode 320x200x8 bmp @ 0xa0000
+asm("mov $0x13,%ax");// vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
 //asm("movw $0x0404,%es:0x100");
-//asm("cld");
 asm("mov $0xa000,%ax");
 asm("mov %ax,%es");
 asm("mov $0x8000,%di");
@@ -83,7 +82,7 @@ asm(".align 8,0");
 asm("idtr:.word 0x03ff");
 asm("     .long IDT");// idt address
 asm(".align 8,0");
-asm("pm:");
+asm("pm:");// protected mode code
 asm(".code32");
 asm("mov $0x10,%ax");
 asm("mov %ax,%ss");
@@ -101,15 +100,15 @@ asm("xor %ebp,%ebp");
 //asm("movw $0x0404,0xa0110");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -isr
 //asm("movw $0x0404,0xa0114");
-//asm("cli");
+asm("cli");// disable interrupts
 asm("mov $IDT,%ebx");//idt address
 asm("mov $0x0040,%ecx");//interrupt count
 asm("1:");
-asm("    movw $isr_err,(%ebx)");//offset 0..15
-asm("    movw $0x0008,2(%ebx)");//selector in gdt
-asm("    movb $0x00,  4(%ebx)");//unused
-asm("    movb $0x8e,  5(%ebx)");//type_attrs p,pv0,!s,i32b
-asm("    movw $0x0000,6(%ebx)");//offfset 16..31
+asm("    movw $isr_err,(%ebx)");// offset 0..15
+asm("    movw $0x0008,2(%ebx)");// selector in gdt
+asm("    movb $0x00,  4(%ebx)");// unused
+asm("    movb $0x8e,  5(%ebx)");// type_attrs p,pv0,!s,i32b
+asm("    movw $0x0000,6(%ebx)");// offfset 16..31
 asm("    add $8,%bx");
 asm("loop 1b");
 asm("movl $0x0e0e0f0f,0xa0118");
@@ -118,10 +117,10 @@ asm("movw $isr_kbd,(IDT+0x48)");
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -start
 //asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
-asm("mov (osca_tsk_a),%ebx");//ebx points to active task record
-asm("mov 4(%ebx),%esp");//restore esp
-asm("sti");
-asm("jmp *(%ebx)");//jmp to restored eip (registers not restored?)
+asm("mov (osca_tsk_a),%ebx");// ebx points to active task record
+asm("mov 4(%ebx),%esp");// restore esp
+asm("sti");// enable interrupts
+asm("jmp *(%ebx)");// jmp to restored eip (state not restored. assume tsk0 special?)
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
 asm("isr_err:cli");
@@ -131,36 +130,36 @@ asm("  jmp isr_err");
 asm(".align 16");
 asm("isr_kbd:");
 asm("  push %ax");
-asm("  in $0x60,%al");//read keyboard port
-asm("  mov %al,osca_key");//
-asm("  mov %al,0xa0100");
-asm("  pushal");//save register
-asm("  call osca_keyb_ev");//call device keyb function ev
-asm("  popal");//restore register
-asm("  mov $0x20,%al");//ack interrupt
-asm("  out %al,$0x20");//
+asm("  in $0x60,%al");// read keyboard port
+asm("  mov %al,osca_key");// store
+asm("  mov %al,0xa0100");// to vga
+asm("  pushal");// save register
+asm("  call osca_keyb_ev");// call device keyb function ev
+asm("  popal");// restore register
+asm("  mov $0x20,%al");// ack interrupt
+asm("  out %al,$0x20");
 asm("  pop %ax");
 asm("  iret");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
-asm("osca_drv_b:.byte 0x00");//boot drive
+asm("osca_drv_b:.byte 0x00");// boot drive
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm(".space _start+436-.,0");//reserved
-asm(".space 10,0");//partition table
+asm(".space _start+436-.,0");// reserved
+asm(".space 10,0");// partition table
 asm(".space 16,0");// #1
 asm(".space 16,0");// #2
 asm(".space 16,0");// #3
 asm(".space 16,0");// #4
-asm(".word 0xaa55");//pc boot sector signature
+asm(".word 0xaa55");// pc boot sector signature
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("sector2:");//0x7e00 (saved at shutdown)
+asm("sector2:");// 0x7e00 (saved at shutdown)
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("osca_t:.long 0x00000000");
 asm("osca_t1:.long 0x00000000");
 asm("osca_key:.long 0x00000000");
 asm(".space sector2+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("sector3:");//0x8000 tasks switcher
+asm("sector3:");// 0x8000 tasks switcher
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("osca_tsk_a:.long tsk");
 asm("isr_tck_eax:.long 0x00000000");
@@ -169,48 +168,49 @@ asm("isr_tck_esp:.long 0x00000000");
 asm("isr_tck_eip:.long 0x00000000");
 asm(".align 16");
 asm("isr_tck:");
+asm("  cli");// disable interrupts while task switching
 asm("  movw $0x0e0e,0xa0200");
-asm("  mov %eax,(isr_tck_eax)");//save eax,ebx
+asm("  mov %eax,(isr_tck_eax)");// save eax,ebx
 asm("  mov %ebx,(isr_tck_ebx)");
-asm("  incl (osca_t)");//increase 64b ticker
+asm("  incl (osca_t)");// increase 64b ticker
 asm("  adcl $0,(osca_t1)");
-asm("  mov (osca_t),%eax");//on screen
+asm("  mov (osca_t),%eax");// on screen
 asm("  mov %eax,0xa0130");
-asm("  mov (osca_tsk_a),%ebx");//ebx points to active task
-asm("  mov (%esp),%eax");//get eip before irq from stack
-asm("  mov %eax,(%ebx)");//save to task.eip
-asm("  mov 8(%esp),%eax");//get eflags from stack
-asm("  mov %eax,8(%ebx)");//save to task.eflags
-asm("  mov %esp,%eax");//adjust esp
-asm("  add $12,%eax");//eip,cs,eflags
-asm("  mov %eax,4(%ebx)");//save to task.esp
-asm("  mov %ebx,%esp");//save gprs
-asm("  add $48,%esp");//move to end of task record
-asm("  pushal");//pushes eax,ecx,edx,ebx,esp0,ebp,esi,edi
-asm("  mov (isr_tck_eax),%eax");//save proper eax,ebx
-asm("  mov %eax,44(%ebx)");//task.eax
+asm("  mov (osca_tsk_a),%ebx");// ebx points to active task
+asm("  mov (%esp),%eax");// get eip before irq from stack
+asm("  mov %eax,(%ebx)");// save to task.eip
+asm("  mov 8(%esp),%eax");// get eflags from stack
+asm("  mov %eax,8(%ebx)");// save to task.eflags
+asm("  mov %esp,%eax");// adjust esp
+asm("  add $12,%eax");// eip,cs,eflags
+asm("  mov %eax,4(%ebx)");// save to task.esp
+asm("  mov %ebx,%esp");// save gprs
+asm("  add $48,%esp");// move to end of task record
+asm("  pushal");// pushes eax,ecx,edx,ebx,esp0,ebp,esi,edi
+asm("  mov (isr_tck_eax),%eax");// save proper eax,ebx
+asm("  mov %eax,44(%ebx)");// task.eax
 asm("  mov (isr_tck_ebx),%eax");
-asm("  mov %eax,32(%ebx)");//task.ebx
-asm("  add $48,%ebx");//next task
-asm("  cmp $tsk_eot,%ebx");//if last
+asm("  mov %eax,32(%ebx)");// task.ebx
+asm("  add $48,%ebx");// next task
+asm("  cmp $tsk_eot,%ebx");// if last
 asm("  jl 7f");
-asm("    mov $tsk,%ebx");//roll
+asm("    mov $tsk,%ebx");// roll
 asm("  7:");
-asm("  mov %ebx,(osca_tsk_a)");//save ptr to task
-asm("  mov 4(%ebx),%esp");//restore esp
-asm("  mov %esp,(isr_tck_esp)");//save
-asm("  mov (%ebx),%esp");//restore eip
-asm("  mov %esp,(isr_tck_eip)");//save
-asm("  mov %ebx,%esp");//restore gprs
-asm("  add $16,%esp");
+asm("  mov %ebx,(osca_tsk_a)");// save pointer of task
+asm("  mov 4(%ebx),%esp");// restore esp
+asm("  mov %esp,(isr_tck_esp)");// save esp, will be used as scratch
+asm("  mov (%ebx),%esp");// restore eip
+asm("  mov %esp,(isr_tck_eip)");// save for jump
+asm("  mov %ebx,%esp");// restore gprs
+asm("  add $16,%esp");// position stack pointer for pop
 asm("  popal");
-asm("  mov (isr_tck_esp),%esp");//restore esp
-asm("  push %ax");
+asm("  mov (isr_tck_esp),%esp");// restore esp
+asm("  push %ax");// ack irq
 asm("  mov $0x20,%al");
-asm("  out %al,$0x20");//ack irq
+asm("  out %al,$0x20");
 asm("  pop %ax");
-asm("  sti");//enable irq
-asm("  jmp *isr_tck_eip");//jmp to restored eip
+asm("  sti");// enable irq
+asm("  jmp *isr_tck_eip");// jmp to restored eip. racing?
 asm(".space sector3+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("sector4:");//0x8200 tasks state table
