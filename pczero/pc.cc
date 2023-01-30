@@ -268,7 +268,7 @@ asm("mov %bx,%es");
 asm("mov $0x7e00,%bx");
 asm("int $0x13");
 asm("jc 8f");// if error
-//! dot write-ack
+// display save ack?
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("8:cli");
 asm("  hlt");
