@@ -209,7 +209,7 @@ asm("  push %ax");// ack irq
 asm("  mov $0x20,%al");
 asm("  out %al,$0x20");
 asm("  pop %ax");
-asm("  sti");// enable irq
+asm("  sti");// enable interrupts
 asm("  jmp *isr_tck_eip");// jmp to restored eip. racing?
 asm(".space sector3+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
