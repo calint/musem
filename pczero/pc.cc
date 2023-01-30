@@ -28,7 +28,7 @@ asm("_start:");
 // that memory may be written to by BIOS when booting from USB
 asm("jmp _main");
 asm(".space 3-(.-_start),0x90");// support 2 or 3 bytes encoded jmp
-asm(".space 59,0");// BPB area that may be written to by BIOS
+asm(".space 59,0x90");// BPB area that may be written to by BIOS
 asm("_main:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("xor %bx,%bx");

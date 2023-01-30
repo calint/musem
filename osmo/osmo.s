@@ -29,7 +29,7 @@ org 7c00h
 	times 3-($-$$) db 0x90; support 2 or 3 byte encoded jmp
 
 	; fake BPB
-	times 59 db 0
+	times 59 db 0x90
 k0s:
 .setup_init:
 	xor ax,ax		; initiate cpu state
