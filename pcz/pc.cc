@@ -8,55 +8,105 @@
 asm(".set IDT,0x600");//interrupt descriptor table address
 asm(".set LOAD_SECTORS,0x1f");//15½K
 asm(".set PROG_SIZE,0x200+0x1f*0x200");
-asm(".code16");
 asm(".global osca_key");
 asm(".global osca_t");
 asm(".global osca_t1");
 asm(".global _start");
+asm(".code16");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("xor %bx,%bx");
-asm("mov %bx,%ds");
-asm("movb %dl,(osca_drv_b)");//save boot drive
-asm("mov %bx,%ss");
-asm("mov $_start,%sp");
-//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $(0x0200+LOAD_SECTORS),%ax");
-asm("mov $0x0002,%cx");//from sector 2
-asm("mov $0x07e0,%bx");//to 0x7e00
-asm("mov %bx,%es");
-asm("xor %bx,%bx");
-asm("int $0x13");
-//asm("jnc 1f");
-//asm("  movw $0xb800,%ax");//console segment
-//asm("  mov %ax,%fs");
-//asm("  movw $0xffff,%fs:0");//top left corner
-//asm("  2:cli");//hlt
-//asm("    hlt");
-//asm("    jmp 2b");
-//asm("1:");
+//asm("xor %ax,%ax");// initiate cpu state
+//asm("mov %ax,%ds");// data segment
+//asm("mov %ax,%ss");// stack segment
+//asm("mov $0x7c00,%sp");// stack pointer
+//asm("cld");// clear direction flag
+// setup_screen:
+//asm("cli");
+asm("mov $0x13,%ax");// bios:vga 320x200x8b
+asm("int $0x10");
+asm("mov $0xa000,%ax");// segment to vga buffer
+asm("mov %ax,%es");
+asm("movw $0x0404,%es:0");// red dot
+asm("movw $0x0303,%es:4");// cyan dot
+asm("movw $0x0404,%es:8");
+asm("movw $0x0505,%es:0xc");
+asm("movw $0x0606,%es:0x10");
+asm("jmp .");
+/*
+.setup_load:
+;	mov ah,0		; reset disk system (necessary?)
+;	int 13h
+	; setup read
+	mov ax,0x021f	; bios:read(02) 1fh sectors x 512B
+	mov cx,0x0002	; from cylinder 0 (ch) sector 2 (1st=1)
+	mov dh,0		; head 0
+;	mov dl,[k0.dr]	; default drive
+	xor bx,bx
+	mov es,bx
+	mov bx,0x7e00
+	int 13h			; load $7e00 to $8c00
+	jnc .setup_drw	; if no error continue
+	mov ax,0a000h	; error while reading
+	mov es,ax		; put red on screen
+	mov word[es:0],0x0404
+	jmp $			; hang
+.setup_drw:
+	mov ax,0a000h	; segment register to vga
+	mov es,ax		;
+	mov word[es:8],0x0202 ; status
+
+	; ds clear at line 24,25 
+	mov cx,4096*4   ; copy 16k from 7c00 to a0000+320*100
+	mov si,7c00h
+	mov di,320*100
+	rep movsb
+
+	mov word[es:12],0x0303
+;	jmp $
+asm("jnc 1f");// if error display 'E' and hang
+asm("  movw $0x0445,%fs:2");// E
+asm("  2:cli");// hang
+asm("    hlt");
+asm("    jmp 2b");
+asm("1:");
+asm("cmp $0x1f,%al");// check if all specified sectors have been read
+asm("jz 3f");
+asm("  movw $0x0445,%fs:4");// E
+asm("  4:cli");// hang
+asm("    hlt");
+asm("    jmp 4b");
+asm("3:");
+asm("movw $0x0441,%fs:6");// A
+*/
+
+
+asm("mov $0,%ah");// wait for key press
+asm("int $0x16");
+
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("mov $0x13,%ax");//vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
-asm("mov $0xa000,%ax");
-asm("mov %ax,%gs");//gs to vgabmp
-asm("mov %ax,%es");//es
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
-//asm("movw $0x0404,%gs:0x100");
-//asm("cld");
-asm("mov $0xa000,%ax");
+asm("mov $0xa000,%ax");// destination es:di
 asm("mov %ax,%es");
+asm("mov %ax,%gs");
 asm("mov $0x8000,%di");
+// source ds:si  (ds is 0h)
 asm("mov $0x7c00,%si");
-asm("mov $PROG_SIZE>>1,%cx");
-asm("rep movsw");
+asm("mov $0x4000,%cx");// 16KB
+asm("rep movsb");
+asm("  4:cli");// hang
+asm("    hlt");
+asm("    jmp 4b");
+
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-//asm("movw $0x0404,%gs:0x104");
+asm("movw $0x0202,%gs:0x1c");// green bar
 asm("in $0x92,%al");// enable a20 line (odd megs)
 asm("or $2,%al");
 asm("out %al,$0x92");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -32b
-//asm("movw $0x0404,%gs:0x108");
+asm("movw $0x0202,%gs:0x10");// green bar
+
 asm("lgdt gdtr");// load global descriptor tables
 asm("mov %cr0,%eax");// enter 32b protected mode
 asm("or $0x1,%al");
@@ -90,30 +140,38 @@ asm("xor %edx,%edx");
 asm("xor %edi,%edi");
 asm("xor %esi,%esi");
 asm("xor %ebp,%ebp");
-//asm("movw $0x0404,0xa0110");
+
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -isr
-//asm("movw $0x0404,0xa0114");
-//asm("cli");
+asm("movw $0x0202,0xa0014");// green bar
+
+//asm("cli");// ? disable interrupts before setup of interrupts?
 asm("movl $IDT,%ebx");//idt address
 asm("movl $0x0040,%ecx");//interrupt count
 asm("1:");
-asm("    movw $isr_err,   (%ebx)");//offset 0..15
+asm("    movw $isr_err,(%ebx)");//offset 0..15
 asm("    movw $0x0008,2(%ebx)");//selector in gdt
 asm("    movb $0x00,  4(%ebx)");//unused
 asm("    movb $0x8e,  5(%ebx)");//type_attrs p,pv0,!s,i32b
 asm("    movw $0x0000,6(%ebx)");//offfset 16..31
 asm("    add $8,%bx");
 asm("loop 1b");
-asm("movl $0x0e0e0f0f,0xa0118");
+asm("movl $0x0f0f0f0f,0xa0018");// white bar
 asm("movw $isr_tck,(IDT+0x40)");
 asm("movw $isr_kbd,(IDT+0x48)");
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -start
-//asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
-asm("movl (osca_tsk_a),%ebx");//ebx points to active task record
-asm("movl 4(%ebx),%esp");//restore esp
-asm("sti");
-asm("jmp *(%ebx)");//jmp to restored eip
+asm("movl $0x02020202,0xa001c");// green bar
+
+///////////////////////////////////////////////////////////////////////
+asm("99:cli");// hang
+asm("  hlt");
+asm("  jmp 99b");
+///////////////////////////////////////////////////////////////////////
+
+asm("movl (osca_tsk_a),%ebx");// active task eip to ebx (initially first task)
+asm("movl 4(%ebx),%esp");// restore stack pointer esp
+asm("sti");// enable interrupts and jump to task. racing?
+asm("jmp *(%ebx)");// jmp to restored eip. are registers initiated to first task?
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
 asm("isr_err:cli");
@@ -122,16 +180,16 @@ asm("  jmp isr_err");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
 asm("isr_kbd:");
-asm("  push %ax");
+asm("  pushw %ax");
 asm("  inb $0x60,%al");//read keyboard port
 asm("  movb %al,osca_key");//
 asm("  movb %al,0xa0100");
 asm("  pushal");//save register
 asm("  call osca_keyb_ev");//call device keyb function ev
 asm("  popal");//restore register
-asm("  mov $0x20,%al");//ack interrupt
-asm("  out %al,$0x20");//
-asm("  pop %ax");
+asm("  movb $0x20,%al");//ack interrupt
+asm("  outb %al,$0x20");//
+asm("  popw %ax");
 asm("  iret");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
@@ -154,13 +212,13 @@ asm(".space sector2+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("sector3:");//0x8000 tasks switcher
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("osca_tsk_a:.long tsk");
-asm("isr_tck_eax:.long 0x00000000");
-asm("isr_tck_ebx:.long 0x00000000");
-asm("isr_tck_esp:.long 0x00000000");
-asm("isr_tck_eip:.long 0x00000000");
+asm("osca_tsk_a:.long tsk");// current task pointer
+asm("isr_tck_eax:.long 0x00000000");// used when switching task in 
+asm("isr_tck_ebx:.long 0x00000000");//   isr_tick to temporarily
+asm("isr_tck_esp:.long 0x00000000");//   save registers
+asm("isr_tck_eip:.long 0x00000000");//   |
 asm(".align 16");
-asm("isr_tck:");
+asm("isr_tck:");// called by timer interrupt to switch task
 asm("  movw $0x0e0e,0xa0200");
 asm("  mov %eax,(isr_tck_eax)");//save eax,ebx
 asm("  mov %ebx,(isr_tck_ebx)");
@@ -194,14 +252,14 @@ asm("  mov %esp,(isr_tck_esp)");//save
 asm("  mov (%ebx),%esp");//restore eip
 asm("  mov %esp,(isr_tck_eip)");//save
 asm("  mov %ebx,%esp");//restore gprs
-asm("  add $16,%esp");
-asm("  popal");
+asm("  add $16,%esp");//move stack pointer to point at edi
+asm("  popal");//store poped registers in task table
 asm("  mov (isr_tck_esp),%esp");//restore esp
-asm("  push %ax");
+asm("  push %ax");//ack irq
 asm("  mov $0x20,%al");
-asm("  out %al,$0x20");//ack irq
+asm("  out %al,$0x20");
 asm("  pop %ax");
-asm("  sti");//enable irq
+asm("  sti");//enable irq and jmp. racing?
 asm("  jmp *isr_tck_eip");//jmp to restored eip
 asm(".space sector3+512-.");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -250,15 +308,15 @@ asm("xor %ax,%ax");
 asm("mov %ax,%ds");
 asm("mov %ax,%ss");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $0x0301,%ax");//save 2nd sector
-asm("mov $0x0002,%cx");//
-asm("mov $0x07e0,%bx");//
-asm("mov %bx,%es");
-asm("xor %bx,%bx");
-asm("mov (osca_drv_b),%dl");
-asm("xor %dh,%dh");
-asm("int $0x13");
-asm("jc 8f");
+//asm("mov $0x0301,%ax");//save 2nd sector
+//asm("mov $0x0002,%cx");//
+//asm("mov $0x07e0,%bx");//
+//asm("mov %bx,%es");
+//asm("xor %bx,%bx");
+//asm("mov (osca_drv_b),%dl");
+//asm("xor %dh,%dh");
+//asm("int $0x13");
+//asm("jc 8f");
 //! dot write-ack
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("8:cli");
@@ -267,20 +325,6 @@ asm("  jmp 8b");
 asm("page0:");
 asm(".align 0x400");
 asm(".space 0x1000,1");
-//asm("mov $0x4f02,%ax");//vesa mode
-//asm("mov $0x410f,%bx");// 320x200x24 bmp
-//asm("mov $0x8100,%bx");// 640x400x256 graphics
-//asm("mov $0x8112,%bx");// 640x480x16.8M
-//asm("mov $0x8115,%bx");// 800x600x16.8M
-//asm("mov $0x8118,%bx");// 1024x768x16.8M
-//AX = 4F01h; ES:DI = pointer to 256 byte buffer;
-//CX = mode number
-//INT 10h
-//hx
-//00	ModeAttributes	WORD	bit 7 (v2.0+) Set if linear framebuffer mode supported
-//28	PhysBasePtr	DWORD	(v2.0+) Physical address of linear framebuffer
-//2C	OffScreenMemOffset	DWORD	(v2.0+) Offset from start of frame buffer to first application usable video memory which is not normally visible. It is possible that there will be offsets between normal onscreen memory and this field value which should not be altered.
-//30	OffScreenMemSize	WORD	(v2.0+) Number of kilobytes of application usable offscreen memory.
 
 /*
   00000-003FF  IVT (Interrupt Vector Table)
