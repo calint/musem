@@ -124,7 +124,7 @@ asm("movw $isr_tck,IDT+0x40");
 asm("movw $isr_kbd,IDT+0x48");
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - start
-//asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
+//asm("movw $0x0404,0xa4000");
 asm("mov osca_tsk_a,%ebx");// ebx points to active task record
 asm("mov 4(%ebx),%esp");// restore esp
 asm("sti");// enable interrupts (racing?)
