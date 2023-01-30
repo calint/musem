@@ -1,6 +1,5 @@
 bits 16
 org 7c00h
-.setup_screen:
 	cli
 	xor ax,ax
 	mov bx,ax
@@ -14,7 +13,7 @@ org 7c00h
 	mov ss,ax
 	mov sp,0x7c00
 	cld
-	mov ax,13h		; bios:vga 320x200x8b
+	mov ax,13h; bios:vga 320x200x8b
 	int 10h
 	mov ax,0a000h
 	mov es,ax
