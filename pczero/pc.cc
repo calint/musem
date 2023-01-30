@@ -120,8 +120,8 @@ asm("    movw $0x0000,6(%ebx)");// offfset 16..31
 asm("    add $8,%bx");
 asm("loop 1b");
 asm("movl $0x0e0e0f0f,0xa0118");// ? remove debugging
-asm("movw $isr_tck,IDT+0x40");
-asm("movw $isr_kbd,IDT+0x48");
+asm("movw $isr_tck,IDT+0x40");// only the lower offset
+asm("movw $isr_kbd,IDT+0x48");//   handlers within 64K
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - start
 //asm("movw $0x0404,0xa4000");
