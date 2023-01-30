@@ -21,12 +21,12 @@ mem:
 org 7c00h
 k0s:
 .setup_init:
-	cli
 	xor ax,ax		; initiate cpu state
 	mov ds,ax		; data segment
-	cld				; clear direction flag
+	mov ss,ax		; stack segment
 	mov sp,k0s		; setup stack pointer
 	mov [k0s.dr],dx	; save the boot drive (dl)
+	cld				; clear direction flag
 .setup_screen:
 	mov ax,13h		; bios:vga 320x200x8b
 	int 10h
@@ -36,8 +36,8 @@ k0s:
 	mov word[es:4],0x0101
 ;	jmp $
 .setup_load:
-	mov ah,0		; reset disk system (necessary?)
-	int 13h
+;	mov ah,0		; reset disk system (necessary?)
+;	int 13h
 	; setup read
 	mov ax,0x021f	; bios:read(02) 1fh sectors x 512B
 	mov cx,0x0002	; from cylinder 0 (ch) sector 2 (1st=1)
@@ -57,9 +57,8 @@ k0s:
 	mov es,ax		;
 	mov word[es:8],0x0202 ; status
 
-;	xor ax,ax       ; must or crash on eeepc (ds already cleared at line 25,26?)
-;	mov ds,ax       ; |
-	mov cx,4096*4   ; copy 32k from 7c00 to a0000+320*100
+	; ds clear at line 24,25 
+	mov cx,4096*4   ; copy 16k from 7c00 to a0000+320*100
 	mov si,7c00h
 	mov di,320*100
 	rep movsb
@@ -172,12 +171,13 @@ bits 32
 
 	mov dword[es:48],0x08080808
 ;	jmp $
-	jmp k1s
+	sti		; enable interrupts
+	jmp k1s	; jump to program
 ;...............................
 ;  data
 ;...............................
 align 4
-.dr		dw 0			; drive (dx at boot)
+.dr		dw 0			; drive (dx at boot, dl is boot drive)
 .sc		dw 0 			; last scan code 
 .tc		dd 0			; tick count (inc by timer)
 .fc		dd 0			; frame count (inc by loop)
@@ -721,7 +721,6 @@ bmp.type_byte_hex:; ebx:byte edx:font
 
 align 16
 k1s:                              ; 8200h
-	sti
 .loop:
 	mov edx,[k0s.tc]
 	and edx,111b
