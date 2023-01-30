@@ -5,3 +5,4 @@
 
 nasm osmo.s -o osmo.img
 qemu-system-i386 -m 1 osmo.img
+# sudo dd if=osmo.img of=/dev/sda && sync
