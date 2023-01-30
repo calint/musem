@@ -21,7 +21,8 @@ asm("movb %dl,(osca_drv_b)");// save boot drive
 asm("mov %bx,%ss");// setup stack
 asm("mov $_start,%sp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-// %dl is the boot drive unchanged
+// %dl is the unchanged boot drive
+asm("cld");
 asm("mov $(0x0200+LOAD_SECTORS),%ax");// command 2, 1fh sectors
 asm("mov $0x0002,%cx");// from cylinder 0, sector 2
 asm("mov $0,%dh");// head 0
@@ -31,8 +32,8 @@ asm("mov $0x7e00,%bx");//to es:0x7e00
 asm("int $0x13");
 //asm("jnc 1f");
 //asm("  movw $0xb800,%ax");//console segment
-//asm("  mov %ax,%fs");
-//asm("  movw $0xffff,%fs:0");//top left corner
+//asm("  mov %ax,%es");
+//asm("  movw $0xffff,%es:0");//top left corner
 //asm("  2:cli");//hlt
 //asm("    hlt");
 //asm("    jmp 2b");
@@ -41,10 +42,9 @@ asm("int $0x13");
 asm("mov $0x13,%ax");//vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
 asm("mov $0xa000,%ax");
-asm("mov %ax,%gs");//gs to vgabmp
 asm("mov %ax,%es");//es
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
-//asm("movw $0x0404,%gs:0x100");
+//asm("movw $0x0404,%es:0x100");
 //asm("cld");
 asm("mov $0xa000,%ax");
 asm("mov %ax,%es");
@@ -53,12 +53,12 @@ asm("mov $0x7c00,%si");
 asm("mov $PROG_SIZE>>1,%cx");
 asm("rep movsw");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-//asm("movw $0x0404,%gs:0x104");
+//asm("movw $0x0404,%es:0x104");
 asm("in $0x92,%al");// enable a20 line (odd megs)
 asm("or $2,%al");
 asm("out %al,$0x92");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -32b
-//asm("movw $0x0404,%gs:0x108");
+//asm("movw $0x0404,%es:0x108");
 asm("lgdt gdtr");// load global descriptor tables
 asm("mov %cr0,%eax");// enter 32b protected mode
 asm("or $0x1,%al");

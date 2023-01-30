@@ -5,16 +5,32 @@ pc.img:     file format binary
 Disassembly of section .data:
 
 00000000 <.data>:
-   0:	b8 13 00             	mov    $0x13,%ax
-   3:	cd 10                	int    $0x10
-   5:	b8 00 a0             	mov    $0xa000,%ax
-   8:	8e c0                	mov    %ax,%es
-   a:	26 c7 06 00 00 01 01 	movw   $0x101,%es:0x0
-  11:	26 c7 06 04 00 02 02 	movw   $0x202,%es:0x4
-  18:	26 c7 06 08 00 03 03 	movw   $0x303,%es:0x8
-  1f:	26 c7 06 0c 00 04 04 	movw   $0x404,%es:0xc
-  26:	26 c7 06 10 00 05 05 	movw   $0x505,%es:0x10
-  2d:	eb fe                	jmp    0x2d
+   0:	fa                   	cli
+   1:	31 c0                	xor    %ax,%ax
+   3:	89 c3                	mov    %ax,%bx
+   5:	89 c1                	mov    %ax,%cx
+   7:	89 c2                	mov    %ax,%dx
+   9:	89 c6                	mov    %ax,%si
+   b:	89 c7                	mov    %ax,%di
+   d:	89 c5                	mov    %ax,%bp
+   f:	8e d8                	mov    %ax,%ds
+  11:	8e c0                	mov    %ax,%es
+  13:	8e e0                	mov    %ax,%fs
+  15:	8e e8                	mov    %ax,%gs
+  17:	8e d0                	mov    %ax,%ss
+  19:	bc 00 7c             	mov    $0x7c00,%sp
+  1c:	fc                   	cld
+  1d:	b8 13 00             	mov    $0x13,%ax
+  20:	cd 10                	int    $0x10
+  22:	b8 00 a0             	mov    $0xa000,%ax
+  25:	8e c0                	mov    %ax,%es
+  27:	26 c7 06 00 00 01 01 	movw   $0x101,%es:0x0
+  2e:	26 c7 06 04 00 02 02 	movw   $0x202,%es:0x4
+  35:	26 c7 06 08 00 03 03 	movw   $0x303,%es:0x8
+  3c:	26 c7 06 0c 00 04 04 	movw   $0x404,%es:0xc
+  43:	26 c7 06 10 00 05 05 	movw   $0x505,%es:0x10
+  4a:	eb fe                	jmp    0x4a
 	...
- 1fb:	00 00                	add    %al,(%bx,%si)
- 1fd:	00 55 aa             	add    %dl,-0x56(%di)
+ 1fc:	00 00                	add    %al,(%bx,%si)
+ 1fe:	55                   	push   %bp
+ 1ff:	aa                   	stos   %al,%es:(%di)

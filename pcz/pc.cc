@@ -1,13 +1,22 @@
+asm(".global _start");
 asm(".code16");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-//asm("xor %ax,%ax");// initiate cpu state
-//asm("mov %ax,%ds");// data segment
-//asm("mov %ax,%ss");// stack segment
+// initiate cpu state
+//asm("cli");// disable interrupts
+asm("xor %ax,%ax");
+asm("mov %ax,%bx");
+asm("mov %ax,%cx");
+asm("mov %ax,%dx");
+asm("mov %ax,%si");
+asm("mov %ax,%di");
+asm("mov %ax,%bp");
+asm("mov %ax,%ds");
+asm("mov %ax,%es");
+//asm("mov %ax,%ss");
 //asm("mov $0x7c00,%sp");// stack pointer
-//asm("cld");// clear direction flag
+asm("cld");// clear direction flag
 // setup_screen:
-//asm("cli");
 asm("mov $0x13,%ax");// bios:vga 320x200x8b
 asm("int $0x10");
 asm("mov $0xa000,%ax");// segment to vga buffer
