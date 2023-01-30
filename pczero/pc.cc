@@ -17,7 +17,7 @@ asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("xor %bx,%bx");
 asm("mov %bx,%ds");
-asm("movb %dl,(osca_drv_b)");// save boot drive
+asm("mov %dl,(osca_drv_b)");// save boot drive
 asm("mov %bx,%ss");// setup stack
 asm("mov $_start,%sp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -30,19 +30,17 @@ asm("xor %bx,%bx");
 asm("mov %bx,%es");
 asm("mov $0x7e00,%bx");//to es:0x7e00
 asm("int $0x13");
-//asm("jnc 1f");
-//asm("  movw $0xb800,%ax");//console segment
-//asm("  mov %ax,%es");
-//asm("  movw $0xffff,%es:0");//top left corner
-//asm("  2:cli");//hlt
-//asm("    hlt");
-//asm("    jmp 2b");
-//asm("1:");
+asm("jnc 1f");// if error
+asm("  mov $0xb800,%ax");//console segment
+asm("  mov %ax,%es");
+asm("  movw $0x1045,%es:0");//top left corner
+asm("  2:cli");//hlt
+asm("    hlt");
+asm("    jmp 2b");
+asm("1:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("mov $0x13,%ax");//vga mode 320x200x8 bmp @ 0xa0000
 asm("int $0x10");
-asm("mov $0xa000,%ax");
-asm("mov %ax,%es");//es
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -memcpy
 //asm("movw $0x0404,%es:0x100");
 //asm("cld");
@@ -79,7 +77,7 @@ asm("     .long IDT");// idt address
 asm(".align 8,0");
 asm("pm:");
 asm(".code32");
-asm("movw $0x10,%ax");
+asm("mov $0x10,%ax");
 asm("mov %ax,%ss");
 asm("mov %ax,%ds");
 asm("mov %ax,%es");
@@ -96,10 +94,10 @@ asm("xor %ebp,%ebp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -isr
 //asm("movw $0x0404,0xa0114");
 //asm("cli");
-asm("movl $IDT,%ebx");//idt address
-asm("movl $0x0040,%ecx");//interrupt count
+asm("mov $IDT,%ebx");//idt address
+asm("mov $0x0040,%ecx");//interrupt count
 asm("1:");
-asm("    movw $isr_err,   (%ebx)");//offset 0..15
+asm("    movw $isr_err,(%ebx)");//offset 0..15
 asm("    movw $0x0008,2(%ebx)");//selector in gdt
 asm("    movb $0x00,  4(%ebx)");//unused
 asm("    movb $0x8e,  5(%ebx)");//type_attrs p,pv0,!s,i32b
@@ -112,8 +110,8 @@ asm("movw $isr_kbd,(IDT+0x48)");
 asm("lidt idtr");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -start
 //asm("movw $0x0404,0xa4000");// dot in middle of vga buffer
-asm("movl (osca_tsk_a),%ebx");//ebx points to active task record
-asm("movl 4(%ebx),%esp");//restore esp
+asm("mov (osca_tsk_a),%ebx");//ebx points to active task record
+asm("mov 4(%ebx),%esp");//restore esp
 asm("sti");
 asm("jmp *(%ebx)");//jmp to restored eip (registers not restored?)
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -235,7 +233,7 @@ asm("tsk_eot:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16,0");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mode16:");// 16b mode from protected mode
+asm("mode16:");// protected mode to 16b mode
 asm(".code16");
 asm("mov $0x20,%ax");
 asm("mov %ax,%ds");
@@ -252,15 +250,16 @@ asm("xor %ax,%ax");
 asm("mov %ax,%ds");
 asm("mov %ax,%ss");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-asm("mov $0x0301,%ax");//save 2nd sector
-asm("mov $0x0002,%cx");//
-asm("mov $0x07e0,%bx");//
+// save 2nd sector
+asm("mov $0x0301,%ax");// command 3, 1 sector
+asm("mov $0x0002,%cx");// track 0, sector 2
+asm("xor %dh,%dh");// head 0
+asm("mov (osca_drv_b),%dl");// saved boot drive
+asm("xor %bx,%bx");// from es:bx (0:0x7e00)
 asm("mov %bx,%es");
-asm("xor %bx,%bx");
-asm("mov (osca_drv_b),%dl");
-asm("xor %dh,%dh");
+asm("mov $0x7e00,%bx");
 asm("int $0x13");
-asm("jc 8f");
+asm("jc 8f");// if error
 //! dot write-ack
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("8:cli");
@@ -269,6 +268,8 @@ asm("  jmp 8b");
 asm("page0:");
 asm(".align 0x400");
 asm(".space 0x1000,1");
+
+
 //asm("mov $0x4f02,%ax");//vesa mode
 //asm("mov $0x410f,%bx");// 320x200x24 bmp
 //asm("mov $0x8100,%bx");// 640x400x256 graphics
