@@ -26,7 +26,7 @@ org 7c00h
 ;	that memory may be written to by BIOS when booting from USB
 
 	jmp k0s
-	times 3-($-$$) db 0; support 2 or 3 byte encoded jmp
+	times 3-($-$$) db 0x90; support 2 or 3 byte encoded jmp
 
 	; fake BPB
 	times 59 db 0
