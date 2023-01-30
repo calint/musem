@@ -19,6 +19,14 @@ mem:
 .vgal   equ 320*200-1
 
 org 7c00h
+;	jump over BIOS Parameter Block (BPB) because 
+;	that memory may be written to by BIOS when booting from USB
+
+	jmp k0s
+	times 3-($-$$) db 0; support 2 or 3 byte encoded jmp
+
+	; fake BPB
+	times 59 db 0
 k0s:
 .setup_init:
 	xor ax,ax		; initiate cpu state
@@ -79,7 +87,7 @@ k0s:
 	mov eax,cr0		; enable
 	or al,1			; protected
 	mov cr0,eax		; mode
-	jmp 8:.setup_pm	; jmp to flush
+	jmp 8:setup_pm	; jmp to flush
 ;...............................
 align 16
 .gdt	dq 0x0000000000000000 ;  4g pl0
@@ -103,15 +111,34 @@ align 16
 		dw 0x0000
 .idtr   dw 0x03ff
         dd mem.idta
+;...............................
+;  data
+;...............................
+align 4
+.dr		dw 0			; drive (dx at boot, dl is boot drive)
+.sc		dw 0 			; last scan code 
+.tc		dd 0			; tick count (inc by timer)
+.fc		dd 0			; frame count (inc by loop)
 
+
+times 436-($-$$) db 0
+times 10 db 0       ; optional disk signature
+times 16 db 0       ; partion 0
+times 16 db 0       ; partion 1
+times 16 db 0       ; partion 2
+times 16 db 0       ; partion 3
+	dw 0xaa55
+	
+;...............................
+sector2: 				; 07e00h
 align 16	; why not 32?
 bits 32
-.setup_pm:
+setup_pm:
 	cli	; disable interrupts (why again? on asus zenbook interrupts are enabled)
 	mov dword[es:16],0x04040404
 ;	mov dword[0xa0010],0x04040404
 ;	jmp $
-.setup_isr:
+setup_isr:
 	mov bp,mem.idta
 	mov cx,128 					; 0h to 400h with idt
 	.1	mov word[bp  ],kierr	; offset 0_16
@@ -123,10 +150,10 @@ bits 32
 	mov word[8h*8],kitmr		; timer
 	mov word[9h*8],kikbd		; keyb
 	mov word[0eh*8],kipf		; page fault
-	lidt [.idtr]
+	lidt [k0s.idtr]
 	mov dword[es:24],0x05050505
 ;	jmp $
-.setup_pages:
+setup_pages:
 	mov bp,mem.peta             ;
 	mov eax,0x00000001          ; page entry template
 	mov cx,(mem.petl+1)>>2      ; 256x4K pages
@@ -148,7 +175,7 @@ bits 32
 
 	mov dword[es:32],0x06060606
 ;	jmp $
-.setup_pe:
+setup_pe:
 	mov eax,cr0			; enable paging
 	or eax,80000000h	; pe bit
 	mov cr0,eax			; paging on
@@ -156,7 +183,7 @@ bits 32
 	mov dword[es:40],0x07070707
 ;	mov byte[100000h],1 ; generates page fault, address not mapped in pte
 ;	jmp $
-.setup_usermode:
+setup_usermode:
 ;	mov dword[es:(320*200-4)],0x02020202
 ;	mov ax,.gdt.bmp
 	mov ax,0x10
@@ -173,29 +200,7 @@ bits 32
 ;	jmp $
 	sti		; enable interrupts
 	jmp k1s	; jump to program
-;...............................
-;  data
-;...............................
-align 4
-.dr		dw 0			; drive (dx at boot, dl is boot drive)
-.sc		dw 0 			; last scan code 
-.tc		dd 0			; tick count (inc by timer)
-.fc		dd 0			; frame count (inc by loop)
 
-
-times 436-($-$$) db 0
-times 10 db 0       ; optional disk signature
-times 16 db 0       ; partion 0
-times 16 db 0       ; partion 1
-times 16 db 0       ; partion 2
-times 16 db 0       ; partion 3
-	dw 0xaa55
-	
-	
-	
-	
-;...............................
-sector2: 				; 07e00h
 ;...............................
 ;  isr
 ;...............................
@@ -557,7 +562,9 @@ dw 0010010010000000b
 .t.c	equ ($-.t)>>.b
 ;...............................
 
-
+;times 0200h-($-sector2) db 15
+;-----------------------------------------------------------
+;sector3: ; 8000h
 ;
 ; bmp writer
 ;
@@ -631,9 +638,7 @@ bmp.type_spc:
 align 16
 bmp.xof  dd 0
 bmp.yof  dd 0
-times 0200h-($-sector2) db 15
 
-sector3: ; 8000h
 align 16
 bmp.drw_nl:;*di:px
         push ax
@@ -838,7 +843,7 @@ k4.drw:; redraw windows
 	popad
 	ret
 ;...............................
-	times 0400h-($-sector3) db 2
+;	times 0400h-($-sector3) db 2
 ;...............................
 k2s:                             ; 8400h
 ;...............................

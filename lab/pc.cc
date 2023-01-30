@@ -2,15 +2,21 @@ asm(".global _start");
 asm(".code16");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+// jump over BIOS Parameter Block BPB because 
+// that memory may be written to by BIOS
+asm("jmp _main");
+asm(".space 3-(.-_start),90");
+asm(".space 59,0xAA");
+asm("_main:");
 // initiate cpu state
 asm("cli");// disable interrupts
 asm("xor %ax,%ax");
-asm("mov %ax,%bx");
-asm("mov %ax,%cx");
-asm("mov %ax,%dx");
-asm("mov %ax,%si");
-asm("mov %ax,%di");
-asm("mov %ax,%bp");
+asm("xor %bx,%bx");
+asm("xor %cx,%cx");
+asm("xor %dx,%dx");
+asm("xor %si,%si");
+asm("xor %di,%di");
+asm("xor %bp,%bp");
 asm("mov %ax,%ds");
 asm("mov %ax,%es");
 asm("mov %ax,%ss");

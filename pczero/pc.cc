@@ -23,6 +23,13 @@ asm(".global _start");
 asm(".code16");
 asm("_start:");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+// jump over BIOS Parameter Block (BPB) because 
+// that memory may be written to by BIOS when booting from USB
+asm("jmp _main");
+asm(".space 3-(.-_start),0");// support 2 or 3 byte encoded jmp
+asm(".space 59,0");// BPB area that may be written to by BIOS
+asm("_main:");
+//-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm("xor %bx,%bx");
 asm("mov %bx,%ds");
 asm("mov %dl,(osca_drv_b)");// save boot drive
