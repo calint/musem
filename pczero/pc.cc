@@ -115,7 +115,7 @@ asm("lidt idtr");
 asm("movl (osca_tsk_a),%ebx");//ebx points to active task record
 asm("movl 4(%ebx),%esp");//restore esp
 asm("sti");
-asm("jmp *(%ebx)");//jmp to restored eip
+asm("jmp *(%ebx)");//jmp to restored eip (registers not restored?)
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 asm(".align 16");
 asm("isr_err:cli");
@@ -125,9 +125,9 @@ asm("  jmp isr_err");
 asm(".align 16");
 asm("isr_kbd:");
 asm("  push %ax");
-asm("  inb $0x60,%al");//read keyboard port
-asm("  movb %al,osca_key");//
-asm("  movb %al,0xa0100");
+asm("  in $0x60,%al");//read keyboard port
+asm("  mov %al,osca_key");//
+asm("  mov %al,0xa0100");
 asm("  pushal");//save register
 asm("  call osca_keyb_ev");//call device keyb function ev
 asm("  popal");//restore register
@@ -168,8 +168,8 @@ asm("  mov %eax,(isr_tck_eax)");//save eax,ebx
 asm("  mov %ebx,(isr_tck_ebx)");
 asm("  incl (osca_t)");//increase 64b ticker
 asm("  adcl $0,(osca_t1)");
-asm("  movl (osca_t),%eax");//on screen
-asm("  movl %eax,0xa0130");
+asm("  mov (osca_t),%eax");//on screen
+asm("  mov %eax,0xa0130");
 asm("  mov (osca_tsk_a),%ebx");//ebx points to active task
 asm("  mov (%esp),%eax");//get eip before irq from stack
 asm("  mov %eax,(%ebx)");//save to task.eip
