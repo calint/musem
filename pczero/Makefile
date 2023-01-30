@@ -1,4 +1,4 @@
-INSTALL_TO=/dev/sdb
+INSTALL_TO=/dev/sda
 IMG=install.img
 BIN=pc.img
 SRC=pc.cc file.cc main.cc

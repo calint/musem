@@ -137,7 +137,7 @@ sector2: 				; 07e00h
 align 16	; why not 32?
 bits 32
 setup_pm:
-	cli	; disable interrupts (why again? on asus zenbook interrupts are enabled)
+	cli	; disable interrupts
 	mov dword[es:16],0x04040404
 ;	mov dword[0xa0010],0x04040404
 ;	jmp $
