@@ -7,6 +7,9 @@
 ;       eeepc4g: ok
 ;         6720s: ok
 ;          vaio: ok
+;  asus zenbook: ok
+;  qemu 7 linux: ok
+
 txt:
 mem:
 .idta	equ 0h
