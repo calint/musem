@@ -109,8 +109,8 @@ asm("xor %ebp,%ebp");
 //-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - isr
 //asm("movw $0x0404,0xa0114");
 asm("cli");// disable interrupts
-asm("mov $IDT,%ebx");//idt address
-asm("mov $0x0040,%ecx");//interrupt count
+asm("mov $IDT,%ebx");// idt address
+asm("mov $0x40,%ecx");// interrupt count
 asm("1:");
 asm("    movw $isr_err,(%ebx)");// offset 0..15
 asm("    movw $0x0008,2(%ebx)");// selector in gdt
