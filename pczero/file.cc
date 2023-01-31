@@ -1,6 +1,7 @@
 #include "file.h"
 
 extern "C" void pz_memcpy(Addr addr,Addr to,Size size){
+	// ? works with aligned mem, call inline assembler
 	int c=size>>2;
 	int*s=(int*)addr;
 	int*d=(int*)to;
