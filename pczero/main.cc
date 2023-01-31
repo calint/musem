@@ -33,7 +33,7 @@ asm("  jmp tsk4");
 
 extern "C" void tsk5(){
 	while(true){
-		osca_pass();
+		osca_yield();
 		*(int*)0xa0154+=3;
 	}
 }
@@ -42,7 +42,7 @@ extern "C" void tsk6(){
 	static char*nl=(char*)0xa0400;
 	static char key_prev=0;
 	while(true){
-		osca_pass();
+		osca_yield();
 		if(key_prev==(char)osca_key){
 			char c=*p;
 			*p=c+1;
@@ -65,7 +65,7 @@ extern "C" void tsk6(){
 
 extern "C" void tsk7(){
 	while(true){
-		osca_pass();
+		osca_yield();
 		int*p=(int*)0xa0080;
 		int c=0x010;
 		while(c--)
@@ -75,14 +75,14 @@ extern "C" void tsk7(){
 
 extern "C" void tsk8(){
 	while(true){
-		osca_pass();
+		osca_yield();
 		*(long int*)0xa0480=osca_t;
 	}
 }
 
 extern "C" void tsk9(){
 	while(true){
-		osca_pass();
+		osca_yield();
 		for(int n=0;n<8;n++)
 		*(int*)(0xa0100+n*4)=osca_t;
 	}
@@ -90,7 +90,7 @@ extern "C" void tsk9(){
 
 extern "C" void tsk10(){
 	while(true){
-		osca_pass();
+		osca_yield();
 		File src=File(Address(0x07c00),1*1024);
 		File dst=File(Address(0xa0800),1*1024);
 		src.to(dst);
