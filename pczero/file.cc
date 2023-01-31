@@ -1,6 +1,6 @@
 #include "file.h"
 
-extern "C" inline void pz_memcpy(Addr addr,Addr to,Size size){
+extern "C" void pz_memcpy(Addr addr,Addr to,Size size){
 	int c=size>>2;
 	int*s=(int*)addr;
 	int*d=(int*)to;
@@ -29,16 +29,12 @@ kcp     push ebp
 extern "C" void kcp(int*src,int*dst,int dwords);
 */
 
-inline Ref::Ref(Addr addr):addr(addr){}
-inline Addr Ref::get_addr(){return addr;}
 
-File::File(Addr addr,Size size):Ref(addr),size(size){}
 void File::to(File file){
 	pz_memcpy(get_addr(),file.get_addr(),size);
 }
-void File::to(File file,int len){
+void File::to(File file,Size len){
 	pz_memcpy(get_addr(),file.get_addr(),len);
 }
-inline Size File::get_size(){return size;}
 
 //File screen=File(Addr(0xa0000),Size(100*320));

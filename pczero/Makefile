@@ -1,10 +1,12 @@
-INSTALL_TO=/dev/sda
 IMG=install.img
 BIN=pc.img
 SRC=pc.cc file.cc main.cc
 CC=g++ -m32 -O0 -fno-pie
-CW=-Wall -Wextra -Wfatal-errors
+CW=-Wall -Wextra -Werror -Wpedantic -Wconversion -Wfatal-errors
 CF=-nostdlib -Wl,--oformat,binary -Wl,-Ttext,0x7c00
+
+# usb device
+INSTALL_TO=/dev/sda
 
 all:	clean build print display
 
@@ -22,12 +24,19 @@ build:
 print:
 	@pwd
 	@du -bh $(IMG) $(BIN) $(SRC)
+	@echo
+	@echo wc source
+	@wc $(SRC)
+	@echo
+	@echo "wc source | gzip"
+	@cat $(SRC)|gzip|wc
+	@echo
 	
 clean:
 	@rm -f $(IMG) $(BIN)
 
 display:
-	@qemu-system-i386 -m 1 $(IMG)
+	@qemu-system-i386 -m 1 -drive file=$(IMG),format=raw
 	 
 install:
 	sudo dd if=$(IMG) of=$(INSTALL_TO)&&sync
