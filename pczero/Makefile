@@ -3,7 +3,7 @@ BIN=pc.img
 SRC=pc.cc std.cc main.cc
 CC=g++ -m32 -O0 -fno-pie
 CW=-Wfatal-errors -Wall -Wextra -Werror -Wpedantic -Wconversion -Wshadow -Wpadded -Winline
-CF=-nostdlib -Wl,--oformat,binary -Wl,-Ttext,0x7c00
+CF=-nostdlib -Wl,--oformat,binary -Wl,-Ttext,0x7c00 -fno-stack-protector
 
 # usb device
 INSTALL_TO=/dev/sda

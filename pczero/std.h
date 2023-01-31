@@ -6,9 +6,9 @@ class Ref{
 public:
 	inline Ref(Addr a):addr{a}{}
 	inline auto get_addr()const->Addr{return addr;}
-	inline auto write_byte(char b)->void{*(char*)addr=b;}
-	inline auto write_int(int i)->void{*(int*)addr=i;}
-	inline auto get_offset_ref(Size offset_B)->Ref{return Ref{(char*)addr+offset_B};}
+	inline auto write_byte(char b)->void{*reinterpret_cast<char*>(addr)=b;}
+	inline auto write_int(int i)->void{*reinterpret_cast<int*>(addr)=i;}
+	inline auto get_offset_ref(Size offset_B)->Ref{return Ref{reinterpret_cast<char*>(addr)+offset_B};}
 };
 
 class File:public Ref{

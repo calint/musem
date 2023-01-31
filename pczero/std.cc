@@ -13,7 +13,7 @@ extern "C" void pz_memcpy(Addr from,Addr to,Size size){
 }
 
 inline void pz_write(Addr a,const char b){
-	*(char*)a=b;
+	*reinterpret_cast<char*>(a)=b;
 }
 
 /*
