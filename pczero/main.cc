@@ -79,9 +79,12 @@ extern "C" void tsk7(){
 }
 
 extern "C" void tsk8(){
+	Bitmap screen{Address(0xa0000),320,200};
+	Bitmap sprite{Address(0xa0000),4,4};
 	while(true){
 		osca_yield();
-		*(int*)0xa0480=osca_t;
+		sprite.to(screen,Coordinates{25,25});
+		//*(int*)0xa0480=osca_t;
 	}
 }
 

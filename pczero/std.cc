@@ -7,9 +7,15 @@ extern "C" void pz_memcpy(Address from,Address to,Size size){
 	int*d=(int*)to;
 	while(c--)
 		*d++=*s++;
-//	asm("movl addr,%esi;movl to,%edi;movl size,%ecx;rep movsl;"::"S"(addr),"D"(to),"C"(size):"%esi","%edi","%ecx");
-//	asm("rep;movsl;"::"S"(addr),"D"(to),"c"(size):);
+	//	asm("movl addr,%esi;movl to,%edi;movl size,%ecx;rep movsl;"::"S"(addr),"D"(to),"C"(size):"%esi","%edi","%ecx");
+	//	asm("rep;movsl;"::"S"(addr),"D"(to),"c"(size):);}
+
 }
+
+inline void pz_write(Address a,const char b){
+	*(char*)a=b;
+}
+
 /*
 kcp     push ebp
 		mov ebp,esp
@@ -31,13 +37,16 @@ extern "C" void kcp(int*src,int*dst,int dwords);
 */
 
 
-void File::to(File file){
+auto File::to(File file)->void{
 	// ? check buffer overrrun
 	pz_memcpy(get_address(),file.get_address(),size_B);
 }
-void File::to(File file,Size len){
+auto File::to(File file,Size len)->void{
 	// ? check buffer overrrun
 	pz_memcpy(get_address(),file.get_address(),len);
 }
-
+auto Bitmap::to(Bitmap&bmp,const Coordinates&c)->void{
+	Ref p=bmp.offset(c.get_y()*bmp.get_width_px()+c.get_x());
+	p.write_int(0x04040404);
+}
 //File screen=File(Addr(0xa0000),Size(100*320));
