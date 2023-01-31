@@ -1,5 +1,5 @@
 #include "pc.h"
-#include "file.h"
+#include "std.h"
 extern "C" void __gxx_personality_v0(){}
 
 asm(".global tsk0,tsk1,tsk2,tsk3,tsk4");
@@ -91,8 +91,8 @@ extern "C" void tsk9(){
 extern "C" void tsk10(){
 	while(true){
 		osca_pass();
-		File src=File(Addr(0x07c00),1*1024);
-		File dst=File(Addr(0xa0800),1*1024);
+		File src=File(Address(0x07c00),1*1024);
+		File dst=File(Address(0xa0800),1*1024);
 		src.to(dst);
 	}
 }

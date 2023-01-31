@@ -1,9 +1,9 @@
-#include "file.h"
+#include "std.h"
 
-extern "C" void pz_memcpy(Addr addr,Addr to,Size size){
+extern "C" void pz_memcpy(Address from,Address to,Size size){
 	// ? works with aligned mem, call inline assembler
 	int c=size>>2;
-	int*s=(int*)addr;
+	int*s=(int*)from;
 	int*d=(int*)to;
 	while(c--)
 		*d++=*s++;
@@ -32,10 +32,12 @@ extern "C" void kcp(int*src,int*dst,int dwords);
 
 
 void File::to(File file){
-	pz_memcpy(get_addr(),file.get_addr(),size);
+	// ? check buffer overrrun
+	pz_memcpy(get_address(),file.get_address(),size_B);
 }
 void File::to(File file,Size len){
-	pz_memcpy(get_addr(),file.get_addr(),len);
+	// ? check buffer overrrun
+	pz_memcpy(get_address(),file.get_address(),len);
 }
 
 //File screen=File(Addr(0xa0000),Size(100*320));
