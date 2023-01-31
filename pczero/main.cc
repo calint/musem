@@ -1,8 +1,9 @@
 #include "pc.h"
 #include "std.h"
-extern "C" void __gxx_personality_v0(){}
+//extern "C" void __gxx_personality_v0(){}
 
 asm(".global tsk0,tsk1,tsk2,tsk3,tsk4");
+
 asm("tsk0:");
 asm("  mov $0x00007c00,%esi");
 asm("  mov $0x000a8000,%edi");
@@ -10,22 +11,26 @@ asm("  mov $0x00001000,%ecx");
 asm("  rep movsl");
 asm("  hlt");
 asm("  jmp tsk0");
+
 asm(".align 16");
 asm("tsk1:");
 asm("  addl $2,0xa0144");
 asm("  hlt");
 asm("  jmp tsk1");
 asm(".align 16");
+
 asm("tsk2:");
 asm("  addl $2,0xa0148");
 asm("  hlt");
 asm("  jmp tsk2");
 asm(".align 16");
+
 asm("tsk3:");
 asm("  addl $2,0xa014c");
 asm("  hlt");
 asm("  jmp tsk3");
 asm(".align 16");
+
 asm("tsk4:");
 asm("  addl $2,0xa0150");
 asm("  hlt");
@@ -76,7 +81,7 @@ extern "C" void tsk7(){
 extern "C" void tsk8(){
 	while(true){
 		osca_yield();
-		*(long int*)0xa0480=osca_t;
+		*(int*)0xa0480=osca_t;
 	}
 }
 
@@ -84,7 +89,7 @@ extern "C" void tsk9(){
 	while(true){
 		osca_yield();
 		for(int n=0;n<8;n++)
-		*(int*)(0xa0100+n*4)=osca_t;
+			*(int*)(0xa0100+n*4)=osca_t;
 	}
 }
 
