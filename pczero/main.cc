@@ -79,11 +79,11 @@ extern "C" void tsk7(){
 }
 
 extern "C" void tsk8(){
-	Bitmap screen{Address(0xa0000),320,200};
-	Bitmap sprite{Address(0xa0000),4,4};
+	Bitmap screen{Addr(0xa0000),320,200};
+	Bitmap sprite{Addr(0xa0000),4,4};
 	while(true){
 		osca_yield();
-		sprite.to(screen,Coordinates{25,25});
+		sprite.to(screen,Coords{25,25});
 		//*(int*)0xa0480=osca_t;
 	}
 }
@@ -99,8 +99,8 @@ extern "C" void tsk9(){
 extern "C" void tsk10(){
 	while(true){
 		osca_yield();
-		File src=File(Address(0x07c00),1*1024);
-		File dst=File(Address(0xa0800),1*1024);
+		File src=File(Addr(0x07c00),1*1024);
+		File dst=File(Addr(0xa0800),1*1024);
 		src.to(dst);
 	}
 }

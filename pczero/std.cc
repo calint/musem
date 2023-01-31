@@ -1,6 +1,6 @@
 #include "std.h"
 
-extern "C" void pz_memcpy(Address from,Address to,Size size){
+extern "C" void pz_memcpy(Addr from,Addr to,Size size){
 	// ? works with aligned mem, call inline assembler
 	int c=size>>2;
 	int*s=(int*)from;
@@ -12,7 +12,7 @@ extern "C" void pz_memcpy(Address from,Address to,Size size){
 
 }
 
-inline void pz_write(Address a,const char b){
+inline void pz_write(Addr a,const char b){
 	*(char*)a=b;
 }
 
@@ -37,16 +37,16 @@ extern "C" void kcp(int*src,int*dst,int dwords);
 */
 
 
-auto File::to(File file)->void{
+auto File::to(File f)->void{
 	// ? check buffer overrrun
-	pz_memcpy(get_address(),file.get_address(),size_B);
+	pz_memcpy(get_addr(),f.get_addr(),size_B);
 }
-auto File::to(File file,Size len)->void{
+auto File::to(File f,Size nbytes)->void{
 	// ? check buffer overrrun
-	pz_memcpy(get_address(),file.get_address(),len);
+	pz_memcpy(get_addr(),f.get_addr(),nbytes);
 }
-auto Bitmap::to(Bitmap&bmp,const Coordinates&c)->void{
-	Ref p=bmp.offset(c.get_y()*bmp.get_width_px()+c.get_x());
+auto Bitmap::to(Bitmap&b,const Coords&c)->void{
+	Ref p=b.get_offset_ref(c.get_y()*b.get_width_px()+c.get_x());
 	p.write_int(0x04040404);
 }
 //File screen=File(Addr(0xa0000),Size(100*320));
