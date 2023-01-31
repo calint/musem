@@ -1,4 +1,5 @@
 typedef char* Addr;
+
 class Ref{
 	Addr addr;
 public:
